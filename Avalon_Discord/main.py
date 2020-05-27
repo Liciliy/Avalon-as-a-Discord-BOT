@@ -21,11 +21,10 @@ async def on_ready():
 async def on_message(message):
 
     global READY
-    if not READY: return
-
-    if message.author == client.user:
-        return
-
+    
+    if not READY:                     return
+    if message.author == client.user: return
+        
     await GameManager.handle_message(message)
 
 client.run('NzA2ODYwNDQ1MTU1NDU5MDgz.XrAajQ.M19zJPXV-DhdObx7MgWaSw-zdL4')
