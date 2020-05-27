@@ -52,3 +52,39 @@ class ErrorToDisplay:
         return ErrorToDisplay(
             lang.ERR_MSG_WRONG_CMD_CHANNEL_COMB_TITTLE,
             lang.ERR_MSG_WRONG_CMD_CHANNEL_COMB_TEXT)
+    
+    @staticmethod
+    def game_already_initated_here():
+        return ErrorToDisplay(
+            lang.ERR_MSG_GAME_ALREADY_INITIATED_HERE_TITLE,
+            lang.ERR_MSG_GAME_ALREADY_INITIATED_HERE_TEXT)
+    
+    @staticmethod
+    def game_not_initated_here():
+        return ErrorToDisplay(
+            lang.ERR_MSG_GAME_NOT_INITIATED_HERE_TITLE,
+            lang.ERR_MSG_GAME_NOT_INITIATED_HERE_TEXT)
+    
+    @staticmethod
+    def player_already_in_a_game():
+        return ErrorToDisplay(
+            lang.ERR_MSG_USER_ALREADY_IN_A_GAME_TITLE,
+            lang.ERR_MSG_USER_ALREADY_IN_A_GAME_TEXT)
+
+
+class InfoToDisplay:
+    text   = None
+    title  = None
+    fields = None
+    footer = None
+
+    def __init__(self, 
+                 title, 
+                 text, 
+                 fields = None, 
+                 footer = None):
+        self.title  = title
+        self.text   = text
+        self.fields = fields
+        self.footer = footer
+        

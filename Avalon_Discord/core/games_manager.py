@@ -3,14 +3,82 @@ import logging
 import asyncio
 
 import core.constants_games_manager as const
+import core.constants_game as game_const
 import languages.ukrainian_lang as lang
 
-from core.utils import form_embed, EmbedField, ErrorToDisplay
+from core.utils import form_embed,\
+    EmbedField,\
+    ErrorToDisplay,\
+    InfoToDisplay
+
+from core.game import AvaGame
 
 class GameManager:
 
-    __active_games_list = list()
+    # Add game when it`s initiated and remove when it`s ended 
+    __active_games_list           = list()
 
+    # Add game when it is initiated and remove when game is locked
+    __guilds_with_initiated_games = list()
+
+    # Add player when he joins/creates game and remove when game is ended
+    __active_players              = list()
+    
+    # Add game when it is initiated and remove when it is ended.
+    # Remove guild when it has no associated games left
+    __guild_to_game_ids_dict      = dict()  
+
+
+    @staticmethod
+    def __create_game_and_register_player(user_id, guild_id, msg):
+        
+        # Get local ID for the game
+        local_game_id = const.BASE_GAME_LOCAL_ID_VAL
+        if guild_id in GameManager.__guild_to_game_ids_dict:
+
+            while local_game_id\
+              not in GameManager.__guild_to_game_ids_dict[guild_id]:
+                local_game_id = local_game_id + 1
+        
+        else:
+            GameManager.__guild_to_game_ids_dict[guild_id] = list()
+
+        GameManager.__guild_to_game_ids_dict[guild_id].append(local_game_id)
+
+        new_game = AvaGame(local_game_id, 
+                           guild_id, 
+                           user_id, 
+                           str(msg.author),
+                           msg.channel.id)
+        
+        GameManager.__guilds_with_initiated_games.append(guild_id)
+        GameManager.__active_players.append(user_id)
+        GameManager.__active_games_list.append(new_game)
+
+        return new_game
+
+    @staticmethod
+    def __add_player_to_game(msg):
+        guild_id = msg.channel.guild.id
+        user_id  = msg.author.id
+
+        game_to_join = None
+
+        for game in GameManager.__guilds_with_initiated_games[guild_id]:
+            if game.game_state == game_const.GAME_INITIATED_STATE:
+                game_to_join = game 
+                break
+
+        game_to_join.add_player(user_id, str(msg.author))
+
+        GameManager.__active_players.append(user_id)
+
+        return game_to_join
+
+    @staticmethod
+    def __user_already_in_game(user_id):
+        return user_id in GameManager.__active_players
+    
     @staticmethod
     def __is_supported_cmd(msg):
         result = False
@@ -71,12 +139,81 @@ class GameManager:
     
     @staticmethod
     async def __handle_init_cmd(msg):
-        await msg.channel.send('Handling ' 
-                               + str(msg.content) 
-                               + ' Joke, LOL! Doing nothing at all!!!')
+        
+        user_id = msg.author.id
+
+        guild_id = msg.guild.id
+
+        if guild_id in GameManager.__guilds_with_initiated_games:
+            await GameManager.__respond_with_error(
+                msg, 
+                ErrorToDisplay.game_already_initated_here())
+            return
+
+        if GameManager.__user_already_in_game(user_id):
+            await GameManager.__respond_with_error(
+                msg, 
+                ErrorToDisplay.player_already_in_a_game())
+            return
+
+        new_game = GameManager.__create_game_and_register_player(user_id, 
+                                                                 guild_id, 
+                                                                 msg)
+        players_num = new_game.num_of_players_str
+
+        await GameManager.__respond_with_info(
+            msg,
+            InfoToDisplay(
+                title  = lang.INFO_MSG_GAME_INITIATED_TITLE,
+                text   = lang.INFO_MSG_GAME_INITIATED_TEXT,
+                footer = lang.INFO_MSG_FOOTER.format(number = players_num),
+                fields = [EmbedField(lang.INFO_MSG_PARTY_LEADER_FIELD_NAME,
+                                     str(msg.author) + '\n',
+                                     True
+                                     )
+                         ])
+        )
     
     @staticmethod
     async def __handle_join_cmd(msg):
+
+        user_id  = msg.author.id
+        guild_id = msg.guild.id
+
+        if GameManager.__user_already_in_game(user_id):
+            await GameManager.__respond_with_error(
+                msg, 
+                ErrorToDisplay.player_already_in_a_game())
+            return
+
+        if guild_id not in GameManager.__guilds_with_initiated_games:
+            await GameManager.__respond_with_error(
+                msg, 
+                ErrorToDisplay.game_not_initated_here())
+            return
+
+        game = GameManager.__add_player_to_game(msg)
+
+        number = game.num_of_players_str
+
+        players_names_list = game.players_names_list
+
+        await GameManager.__respond_with_info(
+            msg,
+            InfoToDisplay(
+                title  = lang.INFO_MSG_GAME_INITIATED_TITLE,
+                text   = lang.INFO_MSG_GAME_INITIATED_TEXT,
+                footer = lang.INFO_MSG_FOOTER.format(number = number),
+                fields = [EmbedField(lang.INFO_MSG_PARTY_LEADER_FIELD_NAME,
+                                     str(msg.author) + '\n',
+                                     True),
+                          EmbedField(lang.INFO_MSG_OTHER_PALYERS_FIELD_NAME,
+                                     players_names_list.join('\n') + '\n',
+                                     True)
+                         ])
+        )
+
+        
         await msg.channel.send('Handling ' 
                                + str(msg.content) 
                                + ' Joke, LOL! Doing nothing at all!!!')
@@ -124,6 +261,17 @@ class GameManager:
                            title  = error_obj.title)
 
         await msg_to_respond.channel.send(embed = embed)
+
+    @staticmethod
+    async def __respond_with_info(msg_to_respond, info_obj):  
+        embed = form_embed(colour = discord.Colour.green(),
+                           descr  = info_obj.text,
+                           title  = info_obj.title,
+                           fields = info_obj.fields,
+                           footer = info_obj.footer)
+
+        await msg_to_respond.channel.send(embed = embed)
+
 
     @staticmethod
     async def handle_message(msg):

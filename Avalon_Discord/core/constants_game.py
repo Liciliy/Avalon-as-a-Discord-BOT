@@ -5,3 +5,4 @@ GAME_PAUSED_STATE    = 3
 GAME_ENDED_STATE     = 4
 
 MAX_PLAYERS          = 16
+MIN_PLAYERS          =  6 

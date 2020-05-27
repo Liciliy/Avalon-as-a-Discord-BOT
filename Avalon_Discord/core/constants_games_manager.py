@@ -40,6 +40,18 @@ HELP_CMD          = '$help_ava'
 
 # TODO Add clear-gamechannel_from-bot-messages command.
 # Can be used when bot spamed a lot of game unrelated stuff (help, errors etc)
+
+# TODO Add un-join game command. Can be used before game is locked and after 
+# the user joined a game.
+
+# TODO Make delete me from all games commands. 
+# This command should remove user mention from all game data sets.
+
+
+# TODO IF un-lock command will be ever added -consider case when 
+# another game is created after this game was locked. 
+
+
 AVALON_COMMANDS = [
     GAME_INITIATE_CMD,
     GAME_JOIN_CMD,
@@ -75,3 +87,5 @@ GAME_CHANNEL_ALLOWED_CMDS = [
     GAME_REFRESH_CMD,
     HELP_CMD
 ]
+
+BASE_GAME_LOCAL_ID_VAL = 0
