@@ -64,10 +64,17 @@ class GameManager:
 
         game_to_join = None
 
-        for game in GameManager.__guilds_with_initiated_games[guild_id]:
-            if game.game_state == game_const.GAME_INITIATED_STATE:
-                game_to_join = game 
-                break
+        game_found = False
+
+        for game_id in GameManager.__guild_to_game_ids_dict[guild_id]:
+            for game in GameManager.__active_games_list:
+                if game.game_id == game_id\
+                  and game.game_state == game_const.GAME_INITIATED_STATE:
+                    game_to_join = game 
+                    game_found = True
+                    break
+
+            if game_found: break
 
         game_to_join.add_player(user_id, str(msg.author))
 
@@ -205,18 +212,13 @@ class GameManager:
                 text   = lang.INFO_MSG_GAME_INITIATED_TEXT,
                 footer = lang.INFO_MSG_FOOTER.format(number = number),
                 fields = [EmbedField(lang.INFO_MSG_PARTY_LEADER_FIELD_NAME,
-                                     str(msg.author) + '\n',
+                                     game.game_master_name + '\n',
                                      True),
                           EmbedField(lang.INFO_MSG_OTHER_PALYERS_FIELD_NAME,
-                                     players_names_list.join('\n') + '\n',
+                                     '\n'.join(players_names_list) + '\n',
                                      True)
                          ])
         )
-
-        
-        await msg.channel.send('Handling ' 
-                               + str(msg.content) 
-                               + ' Joke, LOL! Doing nothing at all!!!')
     
     @staticmethod
     async def __handle_lock_cmd(msg):
@@ -271,7 +273,6 @@ class GameManager:
                            footer = info_obj.footer)
 
         await msg_to_respond.channel.send(embed = embed)
-
 
     @staticmethod
     async def handle_message(msg):

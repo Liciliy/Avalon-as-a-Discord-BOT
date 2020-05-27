@@ -78,3 +78,7 @@ class AvaGame:
             result.append(self.player_id_to_name_dict[id])
 
         return result
+
+    @property
+    def game_master_name(self):
+        return self.player_id_to_name_dict[self.game_master_id]

@@ -87,4 +87,3 @@ class InfoToDisplay:
         self.text   = text
         self.fields = fields
         self.footer = footer
-        

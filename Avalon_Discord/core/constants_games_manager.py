@@ -37,19 +37,19 @@ HELP_CMD          = '$help_ava'
 # Useful when somebady could not talk when the tiemr started.
 # Should be used only by game master?
 
-
 # TODO Add clear-gamechannel_from-bot-messages command.
 # Can be used when bot spamed a lot of game unrelated stuff (help, errors etc)
 
 # TODO Add un-join game command. Can be used before game is locked and after 
 # the user joined a game.
 
-# TODO Make delete me from all games commands. 
+# TODO Make delete-me-from-all-games commands. 
 # This command should remove user mention from all game data sets.
 
 
-# TODO IF un-lock command will be ever added -consider case when 
-# another game is created after this game was locked. 
+# TODO IF un-lock command will be ever added - consider case when 
+# another game is created after this game was locked.  
+# In such case unlock may lead to two initiated games exist in a guild.
 
 
 AVALON_COMMANDS = [
