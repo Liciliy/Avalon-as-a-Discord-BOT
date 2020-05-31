@@ -3,19 +3,75 @@ import logging
 import asyncio
 from core.games_manager import GameManager
 
-logging.basicConfig(level=logging.INFO)
-
-READY = False
-
 client = discord.Client()
 
-@staticmethod
+logging.basicConfig(level=logging.INFO)
+
+READY = False   
+
+GameManager.set_client_object(client)
+
+async def test_command(message):
+    result = False
+    if message.content == 'clear':
+        result = True
+        guild = client.get_guild(715959072532201492)
+
+        for channel in guild.text_channels:
+            await channel.delete()
+            
+        for channel in guild.voice_channels:
+            await channel.delete()
+
+        for role in guild.roles:
+            try:
+                await role.delete()
+            except:
+                pass
+    if message.content == 'cl_users':
+        result = True
+        guild = client.get_guild(715959072532201492)
+
+        for member in guild.members:
+            try:
+                await guild.kick(member)   
+            except:
+                pass            
+    
+    return result
+
+
+async def clear_test_guild():
+    guild = client.get_guild(715959072532201492)
+
+    for channel in guild.text_channels:
+        await channel.delete()
+        
+    for channel in guild.voice_channels:
+        await channel.delete()
+
+    for role in guild.roles:
+        try:
+            await role.delete()
+        except:
+            pass
+    
+    guild = client.get_guild(715959072532201492)
+
+    for member in guild.members:
+        try:
+            await guild.kick(member)   
+        except:
+            pass
 
 @client.event
 async def on_ready():
+    # TODO remove below clear in later releases
+    await clear_test_guild()
     global READY
     READY = True
     print('We have logged in as {0.user}'.format(client))
+
 
 @client.event
 async def on_message(message):
@@ -24,7 +80,11 @@ async def on_message(message):
     
     if not READY:                     return
     if message.author == client.user: return
-        
-    await GameManager.handle_message(message)
+    
+    # TODO delete this test comamnd at commercial release
+    if await test_command(message):
+        pass
+
+    else: await GameManager.handle_message(message)
 
 client.run('NzA2ODYwNDQ1MTU1NDU5MDgz.XrAajQ.M19zJPXV-DhdObx7MgWaSw-zdL4')

@@ -13,6 +13,8 @@ from core.utils import form_embed,\
 
 from core.game import AvaGame
 
+
+
 class GameManager:
 
     # Add game when it`s initiated and remove when it`s ended 
@@ -28,6 +30,15 @@ class GameManager:
     # Remove guild when it has no associated games left
     __guild_to_game_ids_dict      = dict()  
 
+    __client_object = None
+
+    @staticmethod
+    def set_client_object(client):
+        GameManager.__client_object = client
+
+    @staticmethod
+    def get_client():
+        return GameManager.__client_object
 
     @staticmethod
     def __create_game_and_register_player(user_id, guild_id, msg):
@@ -49,7 +60,8 @@ class GameManager:
                            guild_id, 
                            user_id, 
                            str(msg.author),
-                           msg.channel.id)
+                           msg.channel.id,
+                           GameManager.get_client())
         
         GameManager.__guilds_with_initiated_games.append(guild_id)
         GameManager.__active_players.append(user_id)
@@ -58,7 +70,45 @@ class GameManager:
         return new_game
 
     @staticmethod
+    async def __lock_game(game, msg):
+        GameManager.__guilds_with_initiated_games.remove(msg.guild.id)
+        await game.lock_game(msg)
+
+    @staticmethod
+    def __locked_games():
+        result_list = list()
+
+        for game in GameManager.__active_games_list:
+            if game.game_state == game_const.GAME_LOCKED_STATE:
+                result_list.append(game)
+
+        return result_list
+
+    @staticmethod
+    def __get_initiated_active_game(msg):
+        guild_id = msg.channel.guild.id
+
+        game_to_join = None
+
+        game_found = False
+
+        if guild_id in GameManager.__guild_to_game_ids_dict:            
+            for game_id in GameManager.__guild_to_game_ids_dict[guild_id]:
+                for game in GameManager.__active_games_list:
+                    if game.game_id == game_id\
+                      and game.game_state == game_const.GAME_INITIATED_STATE:
+                        game_to_join = game 
+                        game_found = True
+                        break
+    
+                if game_found: break
+        
+        return game_to_join
+
+    @staticmethod
     def __add_player_to_game(msg):
+        # TODO make this method to take user ID and game object as input
+        # and add a player to the provided game.
         guild_id = msg.channel.guild.id
         user_id  = msg.author.id
 
@@ -86,6 +136,22 @@ class GameManager:
     def __user_already_in_game(user_id):
         return user_id in GameManager.__active_players
     
+    @staticmethod
+    def __user_in_the_games(user_id, games):
+        result = False
+        
+        user_game = None
+
+        for game in games:
+            for player_id in game.players_ids_list:
+                if player_id == user_id:
+                    result = True
+                    user_game = game
+                    break
+            if result: break
+
+        return result, user_game
+
     @staticmethod
     def __is_supported_cmd(msg):
         result = False
@@ -122,8 +188,6 @@ class GameManager:
 
     @staticmethod
     async def __handle_supported_cmd(msg):
-        print (msg.channel.type)
-        print (msg.content)
         if GameManager.__cmd_used_in_correct_channel(msg):
             
             logging.info('Got a supported command: ' + str(msg.content))
@@ -198,12 +262,20 @@ class GameManager:
                 msg, 
                 ErrorToDisplay.game_not_initated_here())
             return
+        
+        game = GameManager.__get_initiated_active_game(msg)
 
+        if game.num_of_players >= game_const.MAX_PLAYERS:
+            await GameManager.__respond_with_error(
+                msg, 
+                ErrorToDisplay.too_much_players_to_join())
+            return
+        
         game = GameManager.__add_player_to_game(msg)
 
         number = game.num_of_players_str
 
-        players_names_list = game.players_names_list
+        players_names_list = game.non_master_players_names
 
         await GameManager.__respond_with_info(
             msg,
@@ -222,15 +294,93 @@ class GameManager:
     
     @staticmethod
     async def __handle_lock_cmd(msg):
-        await msg.channel.send('Handling ' 
-                               + str(msg.content) 
-                               + ' Joke, LOL! Doing nothing at all!!!')
-    
+        game = GameManager.__get_initiated_active_game(msg)
+       
+        if game == None:
+            await GameManager.__respond_with_error(
+                msg, 
+                ErrorToDisplay.no_game_to_lock_here())
+            return
+        
+        number = game.num_of_players_str
+
+        if int(number) < game_const.MIN_PLAYERS:
+            await GameManager.__respond_with_error(
+                msg, 
+                ErrorToDisplay.too_few_players_to_lock(number))
+            return
+
+        user_id  = msg.author.id
+
+        if user_id != game.game_master_id:
+            await GameManager.__respond_with_error(
+                msg, 
+                ErrorToDisplay.only_master_can_lock())
+            return        
+
+        await GameManager.__lock_game(game, msg)
+
+        number = game.num_of_players_str
+
+        players_names_list = game.non_master_players_names
+
+        await GameManager.__respond_with_info(
+            msg,
+            InfoToDisplay(
+                title  = lang.INFO_MSG_GAME_LOCKED_TITLE,
+                text   = lang.INFO_MSG_GAME_LOCKED_TEXT,
+                footer = lang.INFO_MSG_FOOTER.format(number = number),
+                fields = [EmbedField(lang.INFO_MSG_PARTY_LEADER_FIELD_NAME,
+                                     game.game_master_name + '\n',
+                                     True),
+                          EmbedField(lang.INFO_MSG_OTHER_PALYERS_FIELD_NAME,
+                                     '\n'.join(players_names_list) + '\n',
+                                     True)
+                         ])
+        )                
+
     @staticmethod
     async def __handle_start_cmd(msg):
-        await msg.channel.send('Handling ' 
-                               + str(msg.content) 
-                               + ' Joke, LOL! Doing nothing at all!!!')
+        
+        user_id   = msg.author.id
+        user_name = str(msg.author)
+
+        if user_id not in GameManager.__active_players:
+            await GameManager.__respond_with_error(
+                msg, 
+                ErrorToDisplay.not_in_game(user_name))
+            return 
+
+        locked_games_list = GameManager.__locked_games()
+
+        user_in_locked_game, game =\
+            GameManager.__user_in_the_games(user_id, locked_games_list)
+       
+        if not user_in_locked_game:
+            await GameManager.__respond_with_error(
+                msg, 
+                ErrorToDisplay.not_in_locked_game(user_name))
+            return        
+
+        if user_id != game.game_master_id:
+            await GameManager.__respond_with_error(
+                msg, 
+                ErrorToDisplay.only_master_can_start())
+            return    
+
+        if game.lobby_channel != msg.channel:
+            await GameManager.__respond_with_error(
+                msg, 
+                ErrorToDisplay.can_start_only_in_game_channel())
+            return  
+
+        if not game.all_players_connected():
+            await GameManager.__respond_with_error(
+                msg, 
+                ErrorToDisplay.not_all_connected())
+            return 
+
+        await game.start_game(msg)
     
     @staticmethod
     async def __handle_pause_cmd(msg):
@@ -260,7 +410,8 @@ class GameManager:
     async def __respond_with_error(msg_to_respond, error_obj):  
         embed = form_embed(colour = discord.Colour.red(),
                            descr  = error_obj.text,
-                           title  = error_obj.title)
+                           title  = error_obj.title,
+                           footer = error_obj.footer)
 
         await msg_to_respond.channel.send(embed = embed)
 

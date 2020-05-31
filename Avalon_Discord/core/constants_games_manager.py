@@ -3,16 +3,16 @@ import discord
 # Створює приватний чат для паті лідера. 
 # В приватному чаті гра надає лідеру можливість обрати персонажів гри,
 # залочити гру, розпочати гру і закінчити гру.
-GAME_INITIATE_CMD = '$go_ava'
-GAME_JOIN_CMD     = '$join_ava'
+GAME_INITIATE_CMD = 'go'
+GAME_JOIN_CMD     = 'join'
 
 # Забороняє нові приєднання до гри. Може бути розлочена.
-GAME_LOCK_CMD     = '$lock_ava'
+GAME_LOCK_CMD     = 'lock'
 
 # Створює внутрішні дані (розподіл ролей, порядок ходу і т.д.),
 # створює приватні канали для усіх гравців, які ініціювали приєднання до гри,
 # і запускає першу пригоду.
-GAME_START_CMD    = '$start_ava'
+GAME_START_CMD    = 'start'
 
 # Має зупиняти усі тамери (і м'ютати гравців?)
 GAME_PAUSE_CMD    = '$pause_ava'
@@ -45,7 +45,6 @@ HELP_CMD          = '$help_ava'
 
 # TODO Make delete-me-from-all-games commands. 
 # This command should remove user mention from all game data sets.
-
 
 # TODO IF un-lock command will be ever added - consider case when 
 # another game is created after this game was locked.  

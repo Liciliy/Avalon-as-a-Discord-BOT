@@ -40,12 +40,14 @@ def form_embed(title     = empty_embed,
     return embed
 
 class ErrorToDisplay:
-    title = None
-    text = None
+    title  = None
+    text   = None
+    footer = None
 
-    def __init__(self, title, text):
-        self.title = title
-        self.text = text
+    def __init__(self, title, text, footer = None):
+        self.title  = title
+        self.text   = text
+        self.footer = footer
 
     @staticmethod
     def wrong_cmd_to_channel_type_combination():
@@ -70,6 +72,62 @@ class ErrorToDisplay:
         return ErrorToDisplay(
             lang.ERR_MSG_USER_ALREADY_IN_A_GAME_TITLE,
             lang.ERR_MSG_USER_ALREADY_IN_A_GAME_TEXT)
+
+    @staticmethod
+    def too_few_players_to_lock(current_number = None):
+        return ErrorToDisplay(
+            lang.ERR_MSG_TOO_FEW_PLAYERS_TITLE,
+            lang.ERR_MSG_TOO_FEW_PLAYERS_TEXT,
+            footer = lang.INFO_MSG_FOOTER.format(number = current_number)\
+                        if current_number else None)
+
+    @staticmethod
+    def too_much_players_to_join():
+        return ErrorToDisplay(
+            lang.ERR_MSG_TOO_MUCH_PLAYERS_TITLE,
+            lang.ERR_MSG_TOO_MUCH_PLAYERS_TEXT)
+
+    @staticmethod
+    def no_game_to_lock_here():
+        return ErrorToDisplay(
+            lang.ERR_MSG_NO_GAME_TO_LOCK_TITLE,
+            lang.ERR_MSG_NO_GAME_TO_LOCK_TEXT)
+    
+    @staticmethod
+    def only_master_can_lock():
+        return ErrorToDisplay(
+            lang.ERR_MSG_ONLY_MASTER_LOCKS_TITLE,
+            lang.ERR_MSG_ONLY_MASTER_LOCKS_TEXT)
+
+    @staticmethod
+    def can_start_only_in_game_channel():
+        return ErrorToDisplay(
+            lang.ERR_MSG_START_ONLY_IN_GAME_CH_TITLE,
+            lang.ERR_MSG_START_ONLY_IN_GAME_CH_TEXT)
+    
+    @staticmethod
+    def only_master_can_start():
+        return ErrorToDisplay(
+            lang.ERR_MSG_ONLY_MASTER_STARTS_TITLE,
+            lang.ERR_MSG_ONLY_MASTER_STARTS_TEXT)
+
+    @staticmethod
+    def not_in_game(username):
+        return ErrorToDisplay(
+            lang.ERR_MSG_NOT_IN_GAME_TITLE,
+            lang.ERR_MSG_NOT_IN_GAME_TEXT.format(user_name = username))
+
+    @staticmethod
+    def not_in_locked_game(username):
+        return ErrorToDisplay(
+            lang.ERR_MSG_NOT_IN_LOCKED_GAME_TITLE,
+            lang.ERR_MSG_NOT_IN_LOCKED_GAME_TEXT.format(user_name = username))
+
+    @staticmethod
+    def not_all_connected():
+        return ErrorToDisplay(
+            lang.ERR_MSG_NOT_ALL_CONNECTED_TITLE,
+            lang.ERR_MSG_NOT_ALL_CONNECTED_TEXT)
 
 
 class InfoToDisplay:

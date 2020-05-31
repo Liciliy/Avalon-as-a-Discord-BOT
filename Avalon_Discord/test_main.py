@@ -27,8 +27,14 @@ client = discord.Client()
 @client.event
 async def on_ready():
     print('We have logged in as {0.user}'.format(client))
-
-
+count = 0
+@client.event
+async def on_reaction_add(reaction, user):
+    global count
+    if count > 0:
+        await reaction.message.delete()
+        #await reaction.remove(user)
+    else: count =+ 1
 
 @client.event
 async def on_message(message):
@@ -92,7 +98,17 @@ async def on_message(message):
             message_str = 'Time left: ' + str(time)
             await timer_message.edit(content = message_str)
         await message.channel.send('Time ended.')
-            
+    
+    if message.content == 'invite':
+
+        guild = client.get_guild(715959072532201492)
+
+        channel = await guild.create_text_channel(
+                'Avalon test channel1')
+        
+        invite = await channel.create_invite()
+
+        await message.channel.send(invite)
 
 
 client.run('NzA2ODYwNDQ1MTU1NDU5MDgz.XrAajQ.M19zJPXV-DhdObx7MgWaSw-zdL4')
