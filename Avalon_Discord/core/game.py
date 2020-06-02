@@ -10,8 +10,8 @@ from core.utils import form_embed,\
     EmbedField,\
     InfoToDisplay
 
-from core.game_voice_manager import\
-    VoiceManager
+from core.game_voice_handler import\
+    VoiceHandler
 
 class AvaGame:
     # Unique per guild
@@ -46,7 +46,7 @@ class AvaGame:
     # Contains members of the guild taking part in the game.
     players_list = None
 
-    __voice_manager = None
+    __voice_handler = None
     
     def __init__(self, 
                  game_id, 
@@ -81,7 +81,7 @@ class AvaGame:
 
         self.bot_client_link = bot_client_link   
 
-        self.__voice_manager = VoiceManager(self)     
+        self.__voice_handler = VoiceHandler(self)     
 
     def add_player(self, player_id, player_name):
         self.players_ids_list.append(player_id)
@@ -93,6 +93,10 @@ class AvaGame:
         self.__fill_players_list()
 
         game_guild = self.game_hosting_guild       
+
+        # Creating voice channel. Invite to channel will b send to each player
+        # upon connection to ones private game channel (created later).
+        await self.__voice_handler.create_channel_and_invite()
 
         for user in self.players_list:
             player_id = user.id
@@ -111,7 +115,7 @@ class AvaGame:
              
             self.player_id_to_role_dict[player_id] = new_role
 
-            # Creating a channel accessible only to the role
+            # Creating a private text channel accessible only to the role
             overwrites = {
                 game_guild.default_role : 
                     discord.PermissionOverwrite(read_messages = False, 
@@ -128,7 +132,9 @@ class AvaGame:
             channel = await game_guild.create_text_channel(
                 'Avalon: ' + self.player_id_to_name_dict[player_id], 
                 overwrites=overwrites)
-
+            self.player_id_to_channel_dict[player_id] = channel 
+            
+            # Sending the channel invite to player who will use it to play.
             invite = \
                 await channel.create_invite()
 
@@ -141,9 +147,7 @@ class AvaGame:
 
             logging.debug('Sending game txt channel invite to: ' + user.name)
             await dmc.send(invite)
-
-            self.player_id_to_channel_dict[player_id] = channel           
-
+              
     async def start_game(self, msg):
         """Does:
         1) Changes game state
@@ -154,13 +158,11 @@ class AvaGame:
         Arguments:
             msg {[type]} -- [description]
         """
-        self.game_state = const.GAME_STARTED_STATE        
-
-        await self.__voice_manager.create_channel_and_invite()
+        self.game_state = const.GAME_STARTED_STATE 
 
         for ch in self.player_id_to_channel_dict.values():
             await ch.send(lang.GAME_MSG_STARTING)           
-            await ch.send( self.__voice_manager.get_voice_ch_invite)
+            
 
     def all_players_connected(self):
         game_guild = self.game_hosting_guild
@@ -175,14 +177,20 @@ class AvaGame:
         return result
  
     def __fill_players_list(self):
+        """
+        Using previously stored players IDs fetches corresponding 
+        user discord objects and save them to game list.
+        """
         self.players_list = list() 
         for player_id in self.players_ids_list:
             self.players_list.append(self.bot_client_link.get_user(player_id))
 
     async def check_if_joined_member_is_game_player(self, member):
         """Checks if waited player had joined to the game.
-        If yes - gives the player permissions to read ones game text 
-        channel.
+        If yes - 
+         1) gives the player permissions to read ones game text 
+            channel.
+         2) send an invite to voice channel
         
         Arguments:
             member {[type]} -- [description]
@@ -207,7 +215,8 @@ class AvaGame:
             await member.add_roles(self.player_id_to_role_dict[member.id])
             await self.player_id_to_channel_dict[member.id].\
                         send(lang.GAME_MSG_WAITING_ALL)
-            
+            await self.player_id_to_channel_dict[member.id].\
+                send(self.__voice_handler.get_voice_ch_invite)
         return result              
 
     @property

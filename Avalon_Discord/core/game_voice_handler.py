@@ -1,7 +1,7 @@
 import discord
 import logging
 
-class VoiceManager:
+class VoiceHandler:
     __game                 = None
     __voice_channel        = None
     __voice_channel_invite = None
