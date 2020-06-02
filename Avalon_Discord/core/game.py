@@ -6,6 +6,13 @@ import discord.guild
 import core.constants_game as const
 import languages.ukrainian_lang as lang
 
+from core.utils import form_embed,\
+    EmbedField,\
+    InfoToDisplay
+
+from core.game_voice_manager import\
+    VoiceManager
+
 class AvaGame:
     # Unique per guild
     game_id                      = None    
@@ -16,9 +23,6 @@ class AvaGame:
     
     # list of discord userds IDs
     players_ids_list             = None
-    
-    # list of channels IDs
-    private_txt_channels_list    = None
     
     player_id_to_channel_dict    = None
     roles_list                   = None
@@ -42,7 +46,7 @@ class AvaGame:
     # Contains members of the guild taking part in the game.
     players_list = None
 
-    game_voice_ch = None
+    __voice_manager = None
     
     def __init__(self, 
                  game_id, 
@@ -70,50 +74,29 @@ class AvaGame:
 
         self.player_id_to_name_dict = {game_master_id : game_master_name}
 
-        self.private_txt_channels_list      = list()
         self.player_id_to_channel_dict      = dict()
         self.roles_list                     = list()
         self.player_id_to_role_dict         = dict()
         self.player_id_to_guild_member_dict = dict()
 
-        self.bot_client_link = bot_client_link        
+        self.bot_client_link = bot_client_link   
+
+        self.__voice_manager = VoiceManager(self)     
 
     def add_player(self, player_id, player_name):
         self.players_ids_list.append(player_id)
         self.player_id_to_name_dict[player_id] = player_name
 
     async def lock_game(self, msg):
-        self.__fill_players_list()
-
-        game_guild = self.__game_hosting_guild
-        self.lobby_channel = await game_guild.create_text_channel(
-                msg.author.name + '\'s Avalon waiting room')
-
-        await self.lobby_channel.send(lang.GAME_MSG_WAITING_ALL)
-
-        waiting_room_invite = \
-            await self.lobby_channel.create_invite()
-
-        for user in self.players_list:
-            dmc = None
-
-            if user.dm_channel == None:
-                await user.create_dm()
-
-            dmc = user.dm_channel
-
-            logging.debug('Sending lobby text invite to: ' + user.name)
-            await dmc.send(waiting_room_invite)
-
         self.game_state = const.GAME_LOCKED_STATE
 
-    async def start_game(self, msg):
-        
-        game_guild = self.__game_hosting_guild
+        self.__fill_players_list()
 
-        self.game_state = const.GAME_STARTED_STATE
+        game_guild = self.game_hosting_guild       
 
-        for player_id in self.players_ids_list:
+        for user in self.players_list:
+            player_id = user.id
+            
             # TODO check if a role with the same name exists.
             # If yes - create a role with some index
 
@@ -127,11 +110,6 @@ class AvaGame:
                 color = discord.Color.dark_blue())            
              
             self.player_id_to_role_dict[player_id] = new_role
-            
-            # Assigning role to the player
-            member = game_guild.get_member(player_id)
-            self.player_id_to_guild_member_dict[player_id] = member            
-            await member.add_roles(new_role)  
 
             # Creating a channel accessible only to the role
             overwrites = {
@@ -151,35 +129,41 @@ class AvaGame:
                 'Avalon: ' + self.player_id_to_name_dict[player_id], 
                 overwrites=overwrites)
 
-            self.player_id_to_channel_dict[player_id] = channel            
-        
-        await self.lobby_channel.delete()     
+            invite = \
+                await channel.create_invite()
 
-        await asyncio.sleep(1)  
+            dmc = None
 
-        overwrites = dict()
-        for role in self.player_id_to_role_dict.values():
-            overwrites[role] = discord.PermissionOverwrite(
-                                            connect              = True, 
-                                            speak                = True,
-                                            use_voice_activation = True)
-                                                           
-        logging.debug('Game master name: ' + str(self.game_master_name))
+            if user.dm_channel == None:
+                await user.create_dm()
 
-        self.game_voice_ch = \
-            await game_guild.create_voice_channel(
-                name       = self.game_master_name + ' game voice', 
-                overwrites = overwrites)
+            dmc = user.dm_channel
 
-        voice_ch_invite = \
-            await self.game_voice_ch.create_invite()
+            logging.debug('Sending game txt channel invite to: ' + user.name)
+            await dmc.send(invite)
+
+            self.player_id_to_channel_dict[player_id] = channel           
+
+    async def start_game(self, msg):
+        """Does:
+        1) Changes game state
+        2) Creates voice channel
+        3) Gives all players server roles access to the channel
+        4) Sends the channel invite to the players.
+
+        Arguments:
+            msg {[type]} -- [description]
+        """
+        self.game_state = const.GAME_STARTED_STATE        
+
+        await self.__voice_manager.create_channel_and_invite()
 
         for ch in self.player_id_to_channel_dict.values():
             await ch.send(lang.GAME_MSG_STARTING)           
-            await ch.send(voice_ch_invite)
+            await ch.send( self.__voice_manager.get_voice_ch_invite)
 
     def all_players_connected(self):
-        game_guild = self.__game_hosting_guild
+        game_guild = self.game_hosting_guild
 
         result = True
         
@@ -190,6 +174,46 @@ class AvaGame:
 
         return result
  
+    def __fill_players_list(self):
+        self.players_list = list() 
+        for player_id in self.players_ids_list:
+            self.players_list.append(self.bot_client_link.get_user(player_id))
+
+    async def check_if_joined_member_is_game_player(self, member):
+        """Checks if waited player had joined to the game.
+        If yes - gives the player permissions to read ones game text 
+        channel.
+        
+        Arguments:
+            member {[type]} -- [description]
+
+        Returns:
+            bool -- True if ember has joined to a guild which hosts
+            game where member is a player.
+            False otherwise.          
+        """
+        result = False
+
+        logging.debug('New member guild id ' + str (member.guild.id) )
+        logging.debug('Game guild id ' + str (self.game_hosting_guild.id) )
+
+        if self.game_state == const.GAME_LOCKED_STATE\
+          and member.guild.id == self.game_hosting_guild.id\
+          and member.id in self.players_ids_list:
+            result = True
+            logging.debug('Giving role to user ' + str(member))
+            # Assigning role to the player                
+            self.player_id_to_guild_member_dict[member.id] = member            
+            await member.add_roles(self.player_id_to_role_dict[member.id])
+            await self.player_id_to_channel_dict[member.id].\
+                        send(lang.GAME_MSG_WAITING_ALL)
+            
+        return result              
+
+    @property
+    def game_hosting_guild(self):
+        return self.bot_client_link.get_guild(715959072532201492)
+
     @property
     def num_of_players_str(self):
         return str(self.num_of_players)
@@ -210,12 +234,3 @@ class AvaGame:
     @property
     def game_master_name(self):
         return self.player_id_to_name_dict[self.game_master_id]
-
-    def __fill_players_list(self):
-        self.players_list = list() 
-        for player_id in self.players_ids_list:
-            self.players_list.append(self.bot_client_link.get_user(player_id))
-
-    @property
-    def __game_hosting_guild(self):
-        return self.bot_client_link.get_guild(715959072532201492)

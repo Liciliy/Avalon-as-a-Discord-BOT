@@ -1,4 +1,5 @@
 import discord
+import logging
 import languages.ukrainian_lang as lang
 
 
@@ -129,6 +130,16 @@ class ErrorToDisplay:
             lang.ERR_MSG_NOT_ALL_CONNECTED_TITLE,
             lang.ERR_MSG_NOT_ALL_CONNECTED_TEXT)
 
+    @staticmethod
+    async def respond_with_error(msg_to_respond, error_obj):
+        logging.info('Responding with ERROR: ' + str(error_obj.title))  
+        embed = form_embed(colour = discord.Colour.red(),
+                           descr  = error_obj.text,
+                           title  = error_obj.title,
+                           footer = error_obj.footer)
+
+        await msg_to_respond.channel.send(embed = embed)
+
 
 class InfoToDisplay:
     text   = None
@@ -145,3 +156,14 @@ class InfoToDisplay:
         self.text   = text
         self.fields = fields
         self.footer = footer
+
+    @staticmethod
+    async def respond_with_info(channel, info_obj):
+        logging.info('Responding with INFO: ' + str(info_obj.title))   
+        embed = form_embed(colour = discord.Colour.green(),
+                           descr  = info_obj.text,
+                           title  = info_obj.title,
+                           fields = info_obj.fields,
+                           footer = info_obj.footer)
+        
+        await channel.send(embed = embed)

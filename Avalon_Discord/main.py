@@ -5,7 +5,16 @@ from core.games_manager import GameManager
 
 client = discord.Client()
 
-logging.basicConfig(level=logging.INFO)
+#logging.basicConfig(level=logging.INFO)
+
+root_logger = logging.getLogger()
+root_logger.setLevel(20)
+
+stream_handler = logging.StreamHandler()
+formatter = logging.Formatter('%(levelname)s:[%(filename)s:%(lineno)d] - %(message)s')
+stream_handler.setFormatter(formatter)
+
+root_logger.addHandler(stream_handler)
 
 READY = False   
 
@@ -86,5 +95,15 @@ async def on_message(message):
         pass
 
     else: await GameManager.handle_message(message)
+
+@client.event
+async def on_member_join(member):
+
+    global READY
+
+    if not READY:                     return
+    logging.info('Got join event')
+    await GameManager.handle_join_event(member)
+
 
 client.run('NzA2ODYwNDQ1MTU1NDU5MDgz.XrAajQ.M19zJPXV-DhdObx7MgWaSw-zdL4')
