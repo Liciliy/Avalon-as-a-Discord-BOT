@@ -6,13 +6,12 @@ import core.constants_games_manager as const
 import core.constants_game as game_const
 import languages.ukrainian_lang as lang
 
-from core.utils import form_embed,\
+from .utils import form_embed,\
     EmbedField,\
     ErrorToDisplay,\
     InfoToDisplay
 
-from core.game import AvaGame
-
+from .game import AvaGame
 
 
 class GameManager:
@@ -176,7 +175,8 @@ class GameManager:
                 for game in GameManager.__active_games_list:
                     
                     for game_chnl_id in \
-                        [id for id in game.player_id_to_channel_dict.values()]:
+                        [id for id\
+                            in game.player_id_to_txt_ch_handler_dict.values()]:
                         if channel_id == game_chnl_id:
                             result = False
                             break
@@ -369,7 +369,8 @@ class GameManager:
                 ErrorToDisplay.only_master_can_start())
             return    
 
-        if msg.channel not in game.player_id_to_channel_dict.values():
+        if msg.channel.id not in \
+          [id for id in game.player_id_to_txt_ch_handler_dict.values()]:
             await ErrorToDisplay.respond_with_error(
                 msg, 
                 ErrorToDisplay.can_start_only_in_game_channel())
