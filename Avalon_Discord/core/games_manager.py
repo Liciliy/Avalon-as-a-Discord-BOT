@@ -172,20 +172,26 @@ class GameManager:
                 # If is a guild channel - and command is not allowed in 
                 # game created channels - check if user didnt use inappropriate
                 # command in game created chat.
-                for game in GameManager.__active_games_list:
-                    
-                    for game_chnl_id in \
-                        [id for id\
-                            in game.player_id_to_txt_ch_handler_dict.values()]:
-                        if channel_id == game_chnl_id:
-                            result = False
-                            break
-                    
-                    if result == False: break                           
-
+                is_game_channel, _ = GameManager.__is_game_txt_channel(channel_id)
+                if is_game_channel: result = False 
+                
         else: result = False
         
         return result
+
+    @staticmethod
+    def __is_game_txt_channel(channel_id):
+        result = False
+        game   = None
+        for game in GameManager.__active_games_list:
+                    
+            for game_chnl_id in [hd.id for hd in game.txt_channels_handlers]:
+                if channel_id == game_chnl_id:
+                    result = True
+                    break
+            if result == True: break
+
+        return result, game
 
     @staticmethod
     async def __handle_supported_cmd(msg):
@@ -205,7 +211,9 @@ class GameManager:
             await dispatch[msg.content](msg)
 
         # Command was used in inappropriate channel.
-        else: await ErrorToDisplay.respond_with_error(
+        else: 
+            logging.info('Responing with error...')
+            await ErrorToDisplay.respond_with_error(
                 msg, 
                 ErrorToDisplay.wrong_cmd_to_channel_type_combination())
     
@@ -217,12 +225,14 @@ class GameManager:
         guild_id = msg.guild.id
 
         if guild_id in GameManager.__guilds_with_initiated_games:
+            logging.info('Responing with error...')
             await ErrorToDisplay.respond_with_error(
                 msg, 
                 ErrorToDisplay.game_already_initated_here())
             return
 
         if GameManager.__user_already_in_game(user_id):
+            logging.info('Responing with error...')
             await ErrorToDisplay.respond_with_error(
                 msg, 
                 ErrorToDisplay.player_already_in_a_game())
@@ -253,12 +263,14 @@ class GameManager:
         guild_id = msg.guild.id
 
         if GameManager.__user_already_in_game(user_id):
+            logging.info('Responing with error...')
             await ErrorToDisplay.respond_with_error(
                 msg, 
                 ErrorToDisplay.player_already_in_a_game())
             return
 
         if guild_id not in GameManager.__guilds_with_initiated_games:
+            logging.info('Responing with error...')
             await ErrorToDisplay.respond_with_error(
                 msg, 
                 ErrorToDisplay.game_not_initated_here())
@@ -267,6 +279,7 @@ class GameManager:
         game = GameManager.__get_initiated_active_game(msg)
 
         if game.num_of_players >= game_const.MAX_PLAYERS:
+            logging.info('Responing with error...')
             await ErrorToDisplay.respond_with_error(
                 msg, 
                 ErrorToDisplay.too_much_players_to_join())
@@ -298,6 +311,7 @@ class GameManager:
         game = GameManager.__get_initiated_active_game(msg)
        
         if game == None:
+            logging.info('Responing with error...')
             await ErrorToDisplay.respond_with_error(
                 msg, 
                 ErrorToDisplay.no_game_to_lock_here())
@@ -306,6 +320,7 @@ class GameManager:
         number = game.num_of_players_str
 
         if int(number) < game_const.MIN_PLAYERS:
+            logging.info('Responing with error...')
             await ErrorToDisplay.respond_with_error(
                 msg, 
                 ErrorToDisplay.too_few_players_to_lock(number))
@@ -314,6 +329,7 @@ class GameManager:
         user_id  = msg.author.id
 
         if user_id != game.game_master_id:
+            logging.info('Responing with error...')
             await ErrorToDisplay.respond_with_error(
                 msg, 
                 ErrorToDisplay.only_master_can_lock())
@@ -347,6 +363,7 @@ class GameManager:
         user_name = str(msg.author)
 
         if user_id not in GameManager.__active_players_ids:
+            logging.info('Responing with error...')
             await ErrorToDisplay.respond_with_error(
                 msg, 
                 ErrorToDisplay.not_in_game(user_name))
@@ -358,29 +375,39 @@ class GameManager:
             GameManager.__user_in_the_games(user_id, locked_games_list)
        
         if not user_in_locked_game:
+            logging.info('Responing with error...')
             await ErrorToDisplay.respond_with_error(
                 msg, 
                 ErrorToDisplay.not_in_locked_game(user_name))
             return        
 
         if user_id != game.game_master_id:
+            logging.info('Responing with error...')
             await ErrorToDisplay.respond_with_error(
                 msg, 
                 ErrorToDisplay.only_master_can_start())
             return    
-
-        if msg.channel.id not in \
-          [id for id in game.player_id_to_txt_ch_handler_dict.values()]:
+        
+        if msg.channel.id not in [hd.id for hd in game.txt_channels_handlers]:
+            logging.info('Responing with error...')
             await ErrorToDisplay.respond_with_error(
                 msg, 
                 ErrorToDisplay.can_start_only_in_game_channel())
             return  
+        
+        #if not game.all_players_connected:
+        #    logging.info('Responing with error...')
+        #    await ErrorToDisplay.respond_with_error(
+        #        msg, 
+        #        ErrorToDisplay.not_all_connected())
+        #    return 
 
-        if not game.all_players_connected():
-            await ErrorToDisplay.respond_with_error(
-                msg, 
-                ErrorToDisplay.not_all_connected())
-            return 
+        #if not game.all_players_in_voice:
+        #    logging.info('Responing with error...')
+        #    await ErrorToDisplay.respond_with_error(
+        #        msg, 
+        #        ErrorToDisplay.not_all_connected())
+        #    return 
 
         await game.start_game(msg)
     
@@ -410,20 +437,32 @@ class GameManager:
 
     @staticmethod
     async def handle_message(msg):
-        if GameManager.__is_supported_cmd(msg): 
+          
+        if GameManager.__is_supported_cmd(msg):
            await GameManager.__handle_supported_cmd(msg) 
 
-        # TODO check if message is a game chat message
+        else:
+
+            game_channel, game = GameManager.__is_game_txt_channel(msg.channel.id)
+            if game_channel:                
+                await game.handle_player_chat_message(msg)
 
     @staticmethod
     async def handle_join_event(member):
         
-        logging.debug('member id is: ' + str (member.id))
-        for pl_id in GameManager.__active_players_ids:
-            logging.debug('Checking: ' + str (member.id) + ' vs ' + str(pl_id))
-            
         if member.id in GameManager.__active_players_ids:
             
             for game in GameManager.__active_games_list:
                 if await game.check_if_joined_member_is_game_player(member):
+                    break
+
+    @staticmethod
+    async def handle_voice_change_event(member, before, after):
+        if before.channel != after.channel and after.channel != None \
+          and member.id in GameManager.__active_players_ids:
+
+            for game in GameManager.__active_games_list:
+                if await game.check_if_player_joined_locked_game_voice(
+                    member,
+                    after.channel):
                     break

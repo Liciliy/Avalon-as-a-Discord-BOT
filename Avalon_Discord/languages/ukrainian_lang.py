@@ -110,6 +110,18 @@ ERR_MSG_NOT_ALL_CONNECTED_TEXT =\
 Запрошення до сервера (і до гри) надійшли гравцям в особисті повідомлення.'
 
 
+INFO_MSG_CONNECTNESS_STATUS_TITLE =\
+'Гравці що не приєднались'
+
+INFO_MSG_CONNECTNESS_STATUS_TEXT =\
+'Ось ті, на кого всі чекають:'
+
+INFO_MSG_NOT_IN_GUILD_FIELD_NAME =\
+'\nГравці, що не доєдналися до сервера: '
+
+INFO_MSG_NOT_IN_VOICE_FIELD_NAME =\
+'\nГравці, на що не увійшли у голосовий канал: '
+
 INFO_MSG_GAME_INITIATED_TITLE =\
 'Набір у гру розпочато!'
 

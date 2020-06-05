@@ -1,13 +1,28 @@
 import logging
 import discord
 
-class TextChannelHandler:
-    __game         = None
-    __text_channel = None
-    __user         = None
-    __invite       = None
-    __user_role    = None
+import languages.ukrainian_lang as lang
 
+from .utils import \
+    form_embed,\
+    EmbedField,\
+    ErrorToDisplay,\
+    InfoToDisplay
+
+from .game_messages_handler import\
+    ChatMessageHandler,\
+    ErrorMsgHandler,\
+    ConnectionStatusMsgHandler
+
+class TextChannelHandler:
+    _game         = None
+    _text_channel = None
+    _user         = None
+    _invite       = None
+    _user_role    = None
+
+    _error_msg_handler = None
+    _chat_msg_handler  = None
     def __init__(self, game, user, role):
         """[summary]
 
@@ -16,19 +31,26 @@ class TextChannelHandler:
             user {discord.user}    -- the channel game user (player)
             role {discord.role}    -- role of the user o nthe server.
         """
-        self.__game         = game
-        self.__user         = user
-        self.__user_role    = role
+        self._game         = game
+        self._user         = user
+        self._user_role    = role
 
     async def create_channel_and_invite_player(self):
-        game_guild = self.__game.game_hosting_guild
+        game_guild = self._game.game_hosting_guild
         
         # Creating a private text channel accessible only to the role
         overwrites = {
             game_guild.default_role : 
-                discord.PermissionOverwrite(read_messages = False, 
-                                            send_messages = False),
-            self.__user_role : 
+                discord.PermissionOverwrite(read_messages         = False, 
+                                            send_messages         = False,
+                                            embed_links           = False,
+                                            attach_files          = False,
+                                            mention_everyone      = False,
+                                            view_guild_insights   = False,
+                                            send_tts_messages     = False,
+                                            add_reactions         = False,
+                                            create_instant_invite = False),
+            self._user_role : 
                 discord.PermissionOverwrite(read_messages = True, 
                                             send_messages = True),
             game_guild.me : 
@@ -37,10 +59,16 @@ class TextChannelHandler:
                                             manage_messages = True)
         }
 
-        self.__text_channel = await game_guild.create_text_channel(
-                'Avalon: ' + self.__user.name, 
+        self._text_channel = await game_guild.create_text_channel(
+                'Avalon: ' + self._user.name, 
                 overwrites=overwrites)
-        await self.__invite_player()
+
+        self._error_msg_handler =\
+             ErrorMsgHandler(self._game, self._text_channel)
+        self._chat_msg_handler  =\
+             ChatMessageHandler(self._game, self._text_channel)
+
+        await self.invite_player()
 
     async def send(self, 
                    content          = None, 
@@ -51,7 +79,7 @@ class TextChannelHandler:
                    files            = None, 
                    delete_after     = None, 
                    nonce            = None):
-        return await self.__text_channel.send(
+        return await self._text_channel.send(
             content          = content          , 
             tts              = tts              , 
             embed            = embed            , 
@@ -60,22 +88,78 @@ class TextChannelHandler:
             delete_after     = delete_after     , 
             nonce            = nonce            )
 
-    async def __invite_player(self):
+    async def invite_player(self):
         # Sending the channel invite to player who will use it to play.
         
-        self.__invite = \
-            await self.__text_channel.create_invite()
+        self._invite = \
+            await self._text_channel.create_invite()
 
         dmc = None
 
-        if self.__user.dm_channel == None:
-            await self.__user.create_dm()
+        if self._user.dm_channel == None:
+            await self._user.create_dm()
 
-        dmc = self.__user.dm_channel
+        dmc = self._user.dm_channel
 
-        logging.debug('Sending game txt channel invite to: ' + self.__user.name)
-        await dmc.send(self.__invite)
+        logging.debug('Sending game txt channel invite to: ' + self._user.name)
+        await dmc.send(self._invite)
+    
+    async def handle_error(self):
+        pass
 
+    async def update_chat(self, new_chat_str):
+        await self._chat_msg_handler.publish(new_chat_str)
+
+    def history(self, limit):
+        return self._text_channel.history(limit = limit)
+    
     @property
     def id(self):
-        return self.__text_channel.id
+        return self._text_channel.id
+
+    @property
+    def user_name(self):
+        return self._user.name
+
+    @property
+    def user_mention(self):
+        return self._user.mention
+
+class GameMasterTxtChHandler(TextChannelHandler):
+    _connection_info_msg_handler = None
+
+    def __init__(self,  game, user, role):
+        super().__init__( game, user, role)
+
+    async def create_channel_and_invite_player(self):
+        await super().create_channel_and_invite_player()
+        self._connection_info_msg_handler  =\
+            ConnectionStatusMsgHandler(self._game, self._text_channel)
+
+    async def refresh_connection_data(self):
+
+        embed_fields = list()
+
+        not_in_guild_list = self._game.get_players_not_in_guild
+
+        not_in_voice_list = self._game.get_players_not_in_voice
+
+        not_in_voice_list.extend(not_in_guild_list)
+        
+        if len(not_in_guild_list) > 0:  
+            embed_fields.append(EmbedField(lang.INFO_MSG_NOT_IN_GUILD_FIELD_NAME,
+                                           '\n'.join(not_in_guild_list) + '\n',
+                                           True))
+
+        if len(not_in_voice_list) > 0:      
+            embed_fields.append(EmbedField(lang.INFO_MSG_NOT_IN_VOICE_FIELD_NAME,
+                                           '\n'.join(not_in_voice_list) + '\n',
+                                           True))
+        if len(embed_fields) > 0:                 
+            await self._connection_info_msg_handler.publish(
+                form_embed(colour = discord.Colour.green(),
+                           descr  = lang.INFO_MSG_CONNECTNESS_STATUS_TEXT,
+                           title  = lang.INFO_MSG_CONNECTNESS_STATUS_TITLE,
+                           fields = embed_fields))
+
+        else: await self._connection_info_msg_handler.delete()

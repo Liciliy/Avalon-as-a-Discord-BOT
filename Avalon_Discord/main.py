@@ -81,7 +81,6 @@ async def on_ready():
     READY = True
     print('We have logged in as {0.user}'.format(client))
 
-
 @client.event
 async def on_message(message):
 
@@ -105,5 +104,12 @@ async def on_member_join(member):
     logging.info('Got join event')
     await GameManager.handle_join_event(member)
 
+@client.event
+async def on_voice_state_update(member, before, after):
+    global READY
 
+    if not READY:                     return
+    logging.info('Got voice state change event')
+    await GameManager.handle_voice_change_event(member, before, after)
+    
 client.run('NzA2ODYwNDQ1MTU1NDU5MDgz.XrAajQ.M19zJPXV-DhdObx7MgWaSw-zdL4')

@@ -40,5 +40,28 @@ class VoiceChannelHandler:
         return self.__voice_channel
 
     @property
+    def voice_ch_id(self):
+        return self.__voice_channel.id
+
+    @property
     def get_voice_ch_invite(self):
         return self.__voice_channel_invite
+
+    def all_players_in_voice(self):
+        result = True
+        for member in self.__game.player_id_to_guild_member_dict.values():
+            if member not in self.__voice_channel.members:
+                result = False
+                break
+
+        return result 
+    
+    def get_players_not_in_voice(self):
+        result = list()
+
+        for member in self.__game.player_id_to_guild_member_dict.values():
+            if member not in self.__voice_channel.members:
+                result.append(member.name)
+                
+
+        return result 

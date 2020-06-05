@@ -63,19 +63,97 @@ class GeometryPoint:
     def to_tuple(self):
         return (self.x_coord, self.y_coord)
 
+class test_author:
+    id   = None
+    name = None
+
+    def __init__(self, id, name):
+        self.id   = id
+        self.name = name
+
+class test_msg:
+    author  = None
+    content = None
+
+    def __init__(self, content, aid, aname):
+        self.content = content
+        self.author  = test_author(aid, aname)
+
+    async def delete (self):
+        pass
+
+def test_main():
+    from core.game_chat_handler import\
+        MessageBlock, ChatHandler
+
+    t_m_1 = test_msg('lolkek\ncheburek', 2, 'Lalkan')
+    t_m_2 = test_msg('juoiuo\nqewqeqw',  7, 'Roflan')
+    t_m_3 = test_msg('hahah\nqwewqe',    3, 'Tolkan')
+    t_m_4 = test_msg('lol', 2, 'Lalkan')
+    t_m_5 = test_msg('lol', 6, 'Parkan')
+    t_m_6 = test_msg('What the fuck?? hello?\n R u idiots?', 4, 'Jeram')
+    t_m_7 = test_msg('idk wtf is this\nmb a joke', 4, 'Jeram')
+
+    messages = [t_m_1, 
+                t_m_2, 
+                t_m_3, 
+                t_m_4, 
+                t_m_5, 
+                t_m_6, 
+                t_m_7, 
+    ]
+
+    #mb1 = MessageBlock(t_m_1)
+    #mb2 = MessageBlock(t_m_2)
+    #mb3 = MessageBlock(t_m_3)
+    #mb4 = MessageBlock(t_m_4)
+#
+    #messages = [mb1, mb2, mb3, mb4]
+
+    #for mb in messages:
+    #    print (mb)
+    #    print ('    size   ' + str(mb.size) )
+    #    print ('    size m ' + str(mb.messages_size) )
+#
+    #print (mb1.shrink(28))
+    #
+    #print ('  ')
+    #print (mb1)
+    #print ('    size   ' + str(mb1.size) )
+    #print ('    size m ' + str(mb1.messages_size) )    
+    #print ('  ')
+    #mb1.append(t_m_2)
+    #print (mb1)
+    #print ('    size   ' + str(mb1.size) )
+    #print ('    size m ' + str(mb1.messages_size) )  
+    #print ('  ')
+    #print ('Shrink result: ' + str(mb1.shrink(17)))
+    #print ('  ')
+    #print (mb1)
+
+    ch = ChatHandler(None)
+
+    for msg in messages:
+        print(ch.get_chat_str('lohan'))
+        print('=============================')
+        ch.handle_new_player_message(msg)
+
+    print(ch.get_chat_str('lohan'))
 
 
 if __name__ == "__main__":
-    my_point   = GeometryPoint(80, 80)
+    #my_point   = GeometryPoint(80, 80)
+#
+    #print ('my_point ', my_point)
+    #this_point = GeometryPoint(30, 30)
+#
+    #print ('this_point ', this_point)
+#
+    #new_point = my_point - (this_point / 2)
+#
+    #print('new_point ', new_point)
+#
+    #print ('new_point tuple', new_point.to_tuple())
+    #print (type (new_point.to_tuple()))
 
-    print ('my_point ', my_point)
-    this_point = GeometryPoint(30, 30)
-
-    print ('this_point ', this_point)
-
-    new_point = my_point - (this_point / 2)
-
-    print('new_point ', new_point)
-
-    print ('new_point tuple', new_point.to_tuple())
-    print (type (new_point.to_tuple()))
+    test_main()
