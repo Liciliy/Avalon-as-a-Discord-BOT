@@ -154,7 +154,7 @@ class GameManager:
     @staticmethod
     def __is_supported_cmd(msg):
         result = False
-        if msg.content in const.AVALON_COMMANDS: result = True
+        if msg.content.lower() in const.AVALON_COMMANDS: result = True
         return result
     
     @staticmethod
@@ -381,33 +381,35 @@ class GameManager:
                 ErrorToDisplay.not_in_locked_game(user_name))
             return        
 
-        if user_id != game.game_master_id:
-            logging.info('Responing with error...')
-            await ErrorToDisplay.respond_with_error(
-                msg, 
-                ErrorToDisplay.only_master_can_start())
-            return    
-        
         if msg.channel.id not in [hd.id for hd in game.txt_channels_handlers]:
             logging.info('Responing with error...')
             await ErrorToDisplay.respond_with_error(
                 msg, 
                 ErrorToDisplay.can_start_only_in_game_channel())
             return  
-        
-        #if not game.all_players_connected:
-        #    logging.info('Responing with error...')
-        #    await ErrorToDisplay.respond_with_error(
-        #        msg, 
-        #        ErrorToDisplay.not_all_connected())
-        #    return 
 
-        #if not game.all_players_in_voice:
-        #    logging.info('Responing with error...')
-        #    await ErrorToDisplay.respond_with_error(
-        #        msg, 
-        #        ErrorToDisplay.not_all_connected())
-        #    return 
+        if user_id != game.game_master_id:
+            logging.info('Responing with error...')            
+            await game.display_error_msg(
+                msg, 
+                ErrorToDisplay.only_master_can_start())
+            return     
+
+        # TODO check if game master changed game settings. 
+         
+        if len(game.get_players_not_in_guild) > 0:
+            logging.info('Responing with not in guild error in game chat...')            
+            await game.display_error_msg(
+                msg, 
+                ErrorToDisplay.not_all_connected())
+            return            
+
+        if len(game.get_players_not_in_voice) > 0:
+            logging.info('Responing with not in voice error in game chat...')            
+            await game.display_error_msg(
+                msg, 
+                ErrorToDisplay.not_all_connected_voice())
+            return   
 
         await game.start_game(msg)
     
@@ -439,7 +441,8 @@ class GameManager:
     async def handle_message(msg):
           
         if GameManager.__is_supported_cmd(msg):
-           await GameManager.__handle_supported_cmd(msg) 
+            msg.content = msg.content.lower()
+            await GameManager.__handle_supported_cmd(msg) 
 
         else:
 
@@ -465,4 +468,19 @@ class GameManager:
                 if await game.check_if_player_joined_locked_game_voice(
                     member,
                     after.channel):
+                    break
+
+    @staticmethod
+    async def handle_reaction_added_event(payload):
+
+        guild_id = payload.guild_id
+        user_id  = payload.user_id
+
+        if user_id in GameManager.__active_players_ids:
+
+            for game in GameManager.__active_games_list:
+
+                if game.game_hosting_guild_id == guild_id \
+                  and user_id in game.players_ids_list:
+                    await game.handle_player_add_reaction(user_id, payload)
                     break

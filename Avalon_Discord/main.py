@@ -73,6 +73,9 @@ async def clear_test_guild():
         except:
             pass
 
+    for em in guild.emojis:
+        await em.delete()
+
 @client.event
 async def on_ready():
     # TODO remove below clear in later releases
@@ -102,6 +105,9 @@ async def on_member_join(member):
 
     if not READY:                     return
     logging.info('Got join event')
+
+    # TODO ignore if the bot triggers this event.
+
     await GameManager.handle_join_event(member)
 
 @client.event
@@ -110,6 +116,20 @@ async def on_voice_state_update(member, before, after):
 
     if not READY:                     return
     logging.info('Got voice state change event')
+
+    # TODO ignore if the bot triggers this event.
+
     await GameManager.handle_voice_change_event(member, before, after)
-    
+
+@client.event
+async def on_raw_reaction_add(payload):
+    global READY
+
+    if not READY:                     return
+
+    # TODO ignore if the bot triggers this event.
+
+    logging.info('Got reaction added/removed event')
+    await GameManager.handle_reaction_added_event(payload)
+
 client.run('NzA2ODYwNDQ1MTU1NDU5MDgz.XrAajQ.M19zJPXV-DhdObx7MgWaSw-zdL4')

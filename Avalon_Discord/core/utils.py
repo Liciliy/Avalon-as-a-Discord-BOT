@@ -131,6 +131,12 @@ class ErrorToDisplay:
             lang.ERR_MSG_NOT_ALL_CONNECTED_TEXT)
 
     @staticmethod
+    def not_all_connected_voice():
+        return ErrorToDisplay(
+            lang.ERR_MSG_NOT_ALL_CONNECTED_VOICE_TITLE,
+            lang.ERR_MSG_NOT_ALL_CONNECTED_VOICE_TEXT)
+
+    @staticmethod
     async def respond_with_error(msg_to_respond, error_obj):
         logging.info('Responding with ERROR: ' + str(error_obj.title))  
         embed = form_embed(colour = discord.Colour.red(),

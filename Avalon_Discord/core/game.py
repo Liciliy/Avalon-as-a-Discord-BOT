@@ -8,7 +8,8 @@ import languages.ukrainian_lang as lang
 from .utils import\
     form_embed,\
     EmbedField,\
-    InfoToDisplay
+    InfoToDisplay,\
+    ErrorToDisplay
 
 from .voice_channel_handler import\
     VoiceChannelHandler
@@ -19,6 +20,9 @@ from .text_channel_handler import\
 
 from .game_chat_handler import\
     ChatHandler
+
+from .emoji_handler import\
+    EmojiHandler
 
 class AvaGame:
     # Unique per guild
@@ -44,6 +48,8 @@ class AvaGame:
     player_id_to_name_dict         = None
 
     player_id_to_guild_member_dict = None
+
+    player_id_to_emoji_dict   = None
 
     bot_client_link = None
 
@@ -82,6 +88,7 @@ class AvaGame:
         self.player_id_to_txt_ch_handler_dict = dict()
         self.player_id_to_role_dict           = dict()
         self.player_id_to_guild_member_dict   = dict()
+        self.player_id_to_emoji_dict          = dict()
 
         self.bot_client_link = bot_client_link   
 
@@ -135,13 +142,23 @@ class AvaGame:
         
         await self._publish_chat()
               
-    async def start_game(self, msg):        
+    async def start_game(self, msg):    
+
+        self.player_id_to_emoji_dict = \
+            await EmojiHandler.create_emojies_for_game(self) 
       
         self.game_state = const.GAME_STARTED_STATE 
 
         for ch in self.player_id_to_txt_ch_handler_dict.values():
-            await ch.send(lang.GAME_MSG_STARTING)           
+            await ch.send(lang.GAME_MSG_STARTING)    
+
+        await msg.delete()      
      
+    async def display_error_msg(self, msg, error_to_display):
+        player_chanel = self.player_id_to_txt_ch_handler_dict[msg.author.id]
+        await player_chanel.display_error_msg(error_to_display)
+        await msg.delete()
+
     def __fill_players_list(self):
         """
         Using previously stored players IDs fetches corresponding 
@@ -231,10 +248,17 @@ class AvaGame:
 
         await self._publish_chat()
 
+    async def handle_player_add_reaction(self, player_id, payload):
+        await self.player_id_to_txt_ch_handler_dict[player_id].\
+            react_on_reaction(payload)
 
     @property
     def game_hosting_guild(self):
         return self.bot_client_link.get_guild(715959072532201492)
+
+    @property
+    def game_hosting_guild_id(self):
+        return self.game_hosting_guild.id
 
     @property
     def num_of_players_str(self):
@@ -261,31 +285,23 @@ class AvaGame:
     def txt_channels_handlers(self):
         return self.player_id_to_txt_ch_handler_dict.values()
 
-    # TODO remove all_players_... functions and used 
-    # count of unconencted players instead (via get_players_not_in... funcs).
-    @property       
-    def all_players_connected(self):
-        game_guild = self.game_hosting_guild
-
-        result = True
-        
-        for id in self.players_ids_list:
-            if id not in [mem.id for mem in game_guild.members]:
-                result = False
-                break
-
-        return result
-    
-    @property 
-    def all_players_in_voice(self):
-        return self._voice_handler.all_players_in_voice()
-
     @property 
     def get_players_not_in_voice(self):
+        """Used to understand who did not join game voice chat.
+
+        Returns:
+            list[String]: list of user names who has not joined the game voice 
+                          chat.  
+        """
         return self._voice_handler.get_players_not_in_voice()
 
     @property
     def get_players_not_in_guild(self):
+        """Used to understand who did not join guild yet.
+
+        Returns:
+            list[String]: list of user names who has not joined the game guild.  
+        """
         result = list()
         
         for player in self.players_list:
@@ -293,5 +309,3 @@ class AvaGame:
                 result.append(player.name)
         
         return result
-
-    

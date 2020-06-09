@@ -23,6 +23,8 @@ class TextChannelHandler:
 
     _error_msg_handler = None
     _chat_msg_handler  = None
+
+    _messages_handlers_list = None
     def __init__(self, game, user, role):
         """[summary]
 
@@ -68,6 +70,9 @@ class TextChannelHandler:
         self._chat_msg_handler  =\
              ChatMessageHandler(self._game, self._text_channel)
 
+        self._messages_handlers_list = [self._error_msg_handler, 
+                                        self._chat_msg_handler]
+
         await self.invite_player()
 
     async def send(self, 
@@ -104,11 +109,16 @@ class TextChannelHandler:
         logging.debug('Sending game txt channel invite to: ' + self._user.name)
         await dmc.send(self._invite)
     
-    async def handle_error(self):
-        pass
+    async def display_error_msg(self, error_content):
+        await self._error_msg_handler.publish(error_content)
 
     async def update_chat(self, new_chat_str):
         await self._chat_msg_handler.publish(new_chat_str)
+
+    async def react_on_reaction(self, payload):
+        for msg_handler in self._messages_handlers_list:
+            if msg_handler != None and msg_handler.id == payload.message_id:
+                await msg_handler.on_reaction(payload)
 
     def history(self, limit):
         return self._text_channel.history(limit = limit)
