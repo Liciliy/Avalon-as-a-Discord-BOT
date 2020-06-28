@@ -1,6 +1,11 @@
 import logging
 
 class EmojiHandler:
+    """Used to add/delete emojies to/from game guild.
+    It is planned that those emojies should be crewated from
+    players avatars and used for addition of a player to party
+    or select a player as a Merlin.
+    """
     # TODO in future, use this static class to check if a guild has enough 
     # free emoji slots to hast a game.
     # This should be used to help in selecting of guild to host game.

@@ -1,0 +1,2 @@
+class NotImplementedMethodUsage(Exception):
+    pass 

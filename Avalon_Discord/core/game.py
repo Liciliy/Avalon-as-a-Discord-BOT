@@ -18,7 +18,7 @@ from .text_channel_handler import\
     TextChannelHandler,\
     GameMasterTxtChHandler
 
-from .game_chat_handler import\
+from .content_handlers.game_chat_handler import\
     ChatHandler
 
 from .emoji_handler import\
@@ -58,6 +58,8 @@ class AvaGame:
 
     _voice_handler = None
     _chat_handler  = None
+
+    _phase = None
     
     def __init__(self, 
                  game_id, 
@@ -309,3 +311,7 @@ class AvaGame:
                 result.append(player.name)
         
         return result
+    
+    @property
+    def number_of_players(self):
+        return len(self.players_ids_list)

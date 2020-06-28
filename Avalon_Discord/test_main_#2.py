@@ -1,11 +1,15 @@
 import os
 import inspect
+import asyncio
 
 IMAGES_DIRECTORY = r'images\text.png'
 
 IMAGE_NEEDED = 'text.png'
 
 from pathlib import Path
+
+
+from core.panels.timer_panel_handler import Timer
 
 def paths():
     print('=======================================================')
@@ -83,7 +87,7 @@ class test_msg:
         pass
 
 def test_main():
-    from core.game_chat_handler import\
+    from core.content_handlers.game_chat_handler import\
         MessageBlock, ChatHandler
 
     t_m_1 = test_msg('lolkek\ncheburek', 2, 'Lalkan')
@@ -156,4 +160,25 @@ if __name__ == "__main__":
     #print ('new_point tuple', new_point.to_tuple())
     #print (type (new_point.to_tuple()))
 
-    test_main()
+    #test_main()
+
+    #SEGMENT_1ST_EMOJI   = '⌛'
+    #print (len(SEGMENT_1ST_EMOJI))
+    #string = '12345'
+#
+    #position = 0
+#
+    #new_character = 'q'
+    #
+    #print(string)
+    #string = string[:position] + new_character + string[position+1:]
+#
+    #print(string)
+
+
+    
+    SEGMENT_1ST_EMOJI      = '⌛'
+    SEGMENT_2ND_EMOJI      = '⏳'
+    EXPIRED_SEGMENT_EMOJI  = '✖️'
+
+    timer = Timer(60, None)

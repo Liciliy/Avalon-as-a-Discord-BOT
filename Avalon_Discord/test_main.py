@@ -2,6 +2,9 @@ import discord
 import logging
 import asyncio
 
+from core.panels.vote_panel_handler import VotePanelHandler
+from core.utils import form_embed
+
 def get_emoji_name_from_author(author):
 
     name = ''
@@ -24,17 +27,19 @@ chat_channel = None
 
 client = discord.Client()
 
+vote_pan = None
+
 @client.event
 async def on_ready():
     print('We have logged in as {0.user}'.format(client))
 count = 0
-@client.event
-async def on_reaction_add(reaction, user):
-    global count
-    if count > 0:
-        await reaction.message.delete()
-        #await reaction.remove(user)
-    else: count =+ 1
+#@client.event
+#async def on_reaction_add(reaction, user):
+#    global count
+#    if count > 0:
+#        await reaction.message.delete()
+#        #await reaction.remove(user)
+#    else: count =+ 1
 
 @client.event
 async def on_message(message):
@@ -42,6 +47,9 @@ async def on_message(message):
     global CHAT_ON
     global last_user_id
     global chat_channel
+
+    global vote_pan
+
     if message.author == client.user:
         return
     elif CHAT_ON and message.channel.id == chat_channel: 
@@ -67,6 +75,21 @@ async def on_message(message):
             await message.delete()
             await chat_message.edit(content = content)
 
+    if message.content.startswith('crv'):
+        vote_pan = VotePanelHandler(None, message.channel)
+
+    if message.content.startswith('vote1'):
+        header_embed = form_embed(descr = 'Test vote:',
+                                  colour = discord.Color.dark_blue())
+        emoji_embed  = form_embed(title = 'Test vote:',
+                                  descr = ':rage::kiss:<:P1:720339313824628818>',
+                                  colour = discord.Color.dark_blue())
+        content = {
+            VotePanelHandler.HEADER_KEY    : 'Test vote:',
+            VotePanelHandler.EMOJIES_KEY   : ':rage::kiss:<:P1:720339313824628818>',
+            VotePanelHandler.REACTIONS_KEY : ['✅', '🚫']            
+        }
+        await vote_pan.publish(content)
 
     if message.content.startswith('$hello'):
         await message.channel.send('Hello!')

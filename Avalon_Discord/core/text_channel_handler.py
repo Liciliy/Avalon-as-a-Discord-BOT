@@ -9,10 +9,14 @@ from .utils import \
     ErrorToDisplay,\
     InfoToDisplay
 
-from .game_messages_handler import\
-    ChatMessageHandler,\
-    ErrorMsgHandler,\
-    ConnectionStatusMsgHandler
+from .panels.chat_panel_handler import\
+    ChatPanelHandler
+
+from .panels.error_pannel_handler import\
+    ErrorPanelHandler
+
+from .panels.conn_st_panel_handler import\
+    ConnectionStatusPanelHandler
 
 class TextChannelHandler:
     _game         = None
@@ -21,10 +25,10 @@ class TextChannelHandler:
     _invite       = None
     _user_role    = None
 
-    _error_msg_handler = None
-    _chat_msg_handler  = None
+    _error_pnl_handler = None
+    _chat_pnl_handler  = None
 
-    _messages_handlers_list = None
+    _panels_handlers_list = None
     def __init__(self, game, user, role):
         """[summary]
 
@@ -65,13 +69,13 @@ class TextChannelHandler:
                 'Avalon: ' + self._user.name, 
                 overwrites=overwrites)
 
-        self._error_msg_handler =\
-             ErrorMsgHandler(self._game, self._text_channel)
-        self._chat_msg_handler  =\
-             ChatMessageHandler(self._game, self._text_channel)
+        self._error_pnl_handler =\
+             ErrorPanelHandler(self._game, self._text_channel)
+        self._chat_pnl_handler  =\
+             ChatPanelHandler(self._game, self._text_channel)
 
-        self._messages_handlers_list = [self._error_msg_handler, 
-                                        self._chat_msg_handler]
+        self._panels_handlers_list = [self._error_pnl_handler, 
+                                      self._chat_pnl_handler]
 
         await self.invite_player()
 
@@ -110,15 +114,15 @@ class TextChannelHandler:
         await dmc.send(self._invite)
     
     async def display_error_msg(self, error_content):
-        await self._error_msg_handler.publish(error_content)
+        await self._error_pnl_handler.publish(error_content)
 
     async def update_chat(self, new_chat_str):
-        await self._chat_msg_handler.publish(new_chat_str)
+        await self._chat_pnl_handler.publish(new_chat_str)
 
     async def react_on_reaction(self, payload):
-        for msg_handler in self._messages_handlers_list:
-            if msg_handler != None and msg_handler.id == payload.message_id:
-                await msg_handler.on_reaction(payload)
+        for pannel_handler in self._panels_handlers_list:
+            if pannel_handler != None and pannel_handler.id == payload.message_id:
+                await pannel_handler.on_reaction(payload)
 
     def history(self, limit):
         return self._text_channel.history(limit = limit)
@@ -136,15 +140,15 @@ class TextChannelHandler:
         return self._user.mention
 
 class GameMasterTxtChHandler(TextChannelHandler):
-    _connection_info_msg_handler = None
+    _connection_info_pnl_handler = None
 
     def __init__(self,  game, user, role):
         super().__init__( game, user, role)
 
     async def create_channel_and_invite_player(self):
         await super().create_channel_and_invite_player()
-        self._connection_info_msg_handler  =\
-            ConnectionStatusMsgHandler(self._game, self._text_channel)
+        self._connection_info_pnl_handler  =\
+            ConnectionStatusPanelHandler(self._game, self._text_channel)
 
     async def refresh_connection_data(self):
 
@@ -166,10 +170,10 @@ class GameMasterTxtChHandler(TextChannelHandler):
                                            '\n'.join(not_in_voice_list) + '\n',
                                            True))
         if len(embed_fields) > 0:                 
-            await self._connection_info_msg_handler.publish(
+            await self._connection_info_pnl_handler.publish(
                 form_embed(colour = discord.Colour.green(),
                            descr  = lang.INFO_MSG_CONNECTNESS_STATUS_TEXT,
                            title  = lang.INFO_MSG_CONNECTNESS_STATUS_TITLE,
                            fields = embed_fields))
 
-        else: await self._connection_info_msg_handler.delete()
+        else: await self._connection_info_pnl_handler.delete()

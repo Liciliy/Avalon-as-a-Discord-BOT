@@ -165,3 +165,26 @@ GAME_MSG_WAITING_ALL =\
 GAME_MSG_STARTING =\
 'Ми проминули бар! Ура!\
  Лишилося тільки щоб усі доєдналися до голосового чату!!!'
+
+
+# Team voters interface
+GATHERS_TEAM = '{team_leader} збирає таку команду ({num_selected} з {num_needed}): '
+DO_YOU_APPROVE_TEAM = 'Схвалити цю команду?'
+
+# Team leader interface
+SELECTED_PLAYERS = 'Ви хочете взяти в команду цих гравців ({num_selected} з {num_needed}): '
+TOO_MANY_PLAYERS = 'Обрано забагато гравців! Потрібно обрати {num_needed}.' 
+TOO_FEW_PLAYERS  = 'Обрано замало гравців! Потрібно обрати {num_needed}.' 
+PROPOSE_TEAM     = 'Запропонувати таку команду?'
+
+VOTE_RESULT = 'Результати голосування (за команду {players_emjies_str})'
+
+# Merlin shooting
+MERLIN_NOT_SELECTED = 'Жоден гравець не позначений як Мерлін.'
+MERLIN_SELECTED     = 'Ось хто позначений як Мерлін.'
+
+ONLY_ONE_CAN_BE_MERLIN = 'Тільки один гравець може бути позначений як Мерлін!'
+ONLY_ONE_CAN_BE_MERLIN = 'Гравець позначений як Мерлін. Зробити остаточний вибір?'
+
+
+
