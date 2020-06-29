@@ -15,9 +15,11 @@ class HelpingClient:
     _thread = None
     _loop   = None
     _client = None
+    _delay  = None
 
-    def __init__(self):
+    def __init__(self, exec_delay):
         self._loop = asyncio.new_event_loop()
+        self._delay = exec_delay
         client = discord.Client(loop = self._loop)
         
         @client.event
@@ -25,6 +27,8 @@ class HelpingClient:
             if message.author == client.user:
                 return
             if  message.content.startswith('roflan'):
+                print ('Sleeping for: ', self._delay)
+                await asyncio.sleep(self._delay)
                 await message.channel.send('kekan!')
 
         self._client = client

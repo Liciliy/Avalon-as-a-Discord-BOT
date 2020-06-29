@@ -1,7 +1,7 @@
 import discord
 import logging
 import asyncio
-import uvloop
+#import uvloop
 
 from collections import deque
 
@@ -22,13 +22,19 @@ def start_background_loop(loop):
 def get_threads_with_loops(num_of_loops):
     threads_list = list()
     loops_deque  = deque()
+    delay = 0
     for _ in range (0, num_of_loops):
 
-        new_helper = HelpingClient()
+
+
+        new_helper = HelpingClient(delay)
+         
         new_helper.start('NzA2ODYwNDQ1MTU1NDU5MDgz.XrAajQ.M19zJPXV-DhdObx7MgWaSw-zdL4')
     
         loops_deque.append(new_helper.loop)
         threads_list.append(new_helper.thread)
+
+        delay = delay + 0.2
 
 
     return threads_list, loops_deque
@@ -46,7 +52,7 @@ class PanelContentHdlrTester:
     def __init__(self):
         self._timer = Timer(60, self)
         self.messages = list()
-        #self._threads_list , self._loops_deque = get_threads_with_loops(8)
+        self._threads_list , self._loops_deque = get_threads_with_loops(8)
     
     async def update_panels(self):
         tasks = list()
@@ -69,15 +75,7 @@ class PanelContentHdlrTester:
            #======================================================================================
 
 
-        await asyncio.gather(*tasks)
-
-        #coro = some_channel.send('Song is done!')
-        #fut = asyncio.run_coroutine_threadsafe(coro, client.loop)
-        #try:
-        #    fut.result()
-        #except:
-        #    # an error happened sending the message
-        #    pass
+        await asyncio.gather(*tasks)       
 
     async def timer_expired(self):
         pass
@@ -91,7 +89,7 @@ tester = PanelContentHdlrTester()
 
 logging.basicConfig(level=logging.INFO)
 
-uvloop.install()
+#uvloop.install()
 
 client = discord.Client()
 
