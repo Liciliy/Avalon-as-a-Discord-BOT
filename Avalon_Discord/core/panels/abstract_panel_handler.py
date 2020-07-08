@@ -7,10 +7,7 @@ import core.panels.constants_game_panel_handler as const
 
 from ..common import NotImplementedMethodUsage
 
-class ContentType:
-    FILE  = 0
-    EMBED = 1
-    TEXT  = 2    
+from ..messages_dispatching.task import ContentType
 
 class AbsGamePanelHandler:
     _game         = None

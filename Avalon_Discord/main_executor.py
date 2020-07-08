@@ -1,9 +1,14 @@
 import discord
 import logging
 import asyncio
-from core.games_manager import GameManager
 
-client = discord.Client()
+
+import core.utils as utils
+
+from core.games_manager import GameManager
+from core.messages_dispatching.messages_dispatcher import MessagesDispatcher
+
+client_token = 'NzA2ODYwNDQ1MTU1NDU5MDgz.XrAajQ.M19zJPXV-DhdObx7MgWaSw-zdL4'
 
 #logging.basicConfig(level=logging.INFO)
 
@@ -11,14 +16,22 @@ root_logger = logging.getLogger()
 root_logger.setLevel(20)
 
 stream_handler = logging.StreamHandler()
-formatter = logging.Formatter('%(levelname)s:[%(filename)s:%(lineno)d] - %(message)s')
+formatter = logging.Formatter(
+    '%(levelname)s:[%(filename)s:%(lineno)d][%(threadName)s] - %(message)s')
 stream_handler.setFormatter(formatter)
 
 root_logger.addHandler(stream_handler)
 
 READY = False   
 
+client = discord.Client()
+
+message_dispatcher = MessagesDispatcher(client_token)
+
 GameManager.set_client_object(client)
+
+utils.set_messages_dispatcher(message_dispatcher)
+GameManager.set_messages_dispatcher_object(message_dispatcher)
 
 async def test_command(message):
     result = False
@@ -132,4 +145,4 @@ async def on_raw_reaction_add(payload):
     logging.info('Got reaction added/removed event')
     await GameManager.handle_reaction_added_event(payload)
 
-client.run('NzA2ODYwNDQ1MTU1NDU5MDgz.XrAajQ.M19zJPXV-DhdObx7MgWaSw-zdL4')
+client.run(client_token)

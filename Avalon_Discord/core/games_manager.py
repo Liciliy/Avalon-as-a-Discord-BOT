@@ -31,14 +31,24 @@ class GameManager:
 
     __client_object = None
 
+    _messages_dispatcher = None
+
     @staticmethod
     def set_client_object(client):
         GameManager.__client_object = client
 
     @staticmethod
+    def set_messages_dispatcher_object(message_dispatcher):
+        GameManager._messages_dispatcher = message_dispatcher
+
+    @staticmethod
     def get_client():
         return GameManager.__client_object
 
+    @staticmethod
+    def get_messages_dispatcher():
+        return GameManager._messages_dispatcher
+    
     @staticmethod
     def __create_game_and_register_player(user_id, guild_id, msg):
         
@@ -60,7 +70,8 @@ class GameManager:
                            user_id, 
                            str(msg.author),
                            msg.channel.id,
-                           GameManager.get_client())
+                           GameManager.get_client(),
+                           GameManager.get_messages_dispatcher())
         
         GameManager.__guilds_with_initiated_games.append(guild_id)
         GameManager.__active_players_ids.append(user_id)

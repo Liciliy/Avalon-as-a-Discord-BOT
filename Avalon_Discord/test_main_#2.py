@@ -10,6 +10,7 @@ from pathlib import Path
 
 
 from core.panels.timer_panel_handler import Timer
+from core.messages_dispatching.task_queue import TaskQueue
 
 def paths():
     print('=======================================================')
@@ -177,8 +178,27 @@ if __name__ == "__main__":
 
 
     
-    SEGMENT_1ST_EMOJI      = '⌛'
-    SEGMENT_2ND_EMOJI      = '⏳'
-    EXPIRED_SEGMENT_EMOJI  = '✖️'
+    #SEGMENT_1ST_EMOJI      = '⌛'
+    #SEGMENT_2ND_EMOJI      = '⏳'
+    #EXPIRED_SEGMENT_EMOJI  = '✖️'
+#
+    #timer = Timer(60, None)
 
-    timer = Timer(60, None)
+    new_q = TaskQueue()
+
+    if new_q.is_empty: print('Q is empty')    
+    else: print('Q is not empty')
+
+    new_q.add_task('Lol')
+    new_q.add_task('kek')
+    new_q.add_task('cheburek')
+    
+    if new_q.is_empty: print('Q is empty')    
+    else: print('Q is not empty')
+
+    for item in new_q.get_tasks():
+        print ('item is: ', item)
+
+
+    if new_q.is_empty: print('Q is empty')    
+    else: print('Q is not empty')

@@ -2,8 +2,17 @@ import discord
 import logging
 import languages.ukrainian_lang as lang
 
+from .messages_dispatching.task import Task, MsgActType, ContentType
+
 
 empty_embed = discord.embeds.EmptyEmbed
+
+MESASGE_DISPATCHER = None
+
+def set_messages_dispatcher(dispatcher):
+    global MESASGE_DISPATCHER
+    MESASGE_DISPATCHER = dispatcher
+
 
 class EmbedField():
     name   = None
@@ -144,7 +153,14 @@ class ErrorToDisplay:
                            title  = error_obj.title,
                            footer = error_obj.footer)
 
-        await msg_to_respond.channel.send(embed = embed)
+        task = Task(MsgActType.SEND, 
+                    content_type = ContentType.EMBED,
+                    content = embed, 
+                    channel_id = msg_to_respond.channel.id)
+                    
+        MESASGE_DISPATCHER.order_task_to_execute(task)
+
+        #await msg_to_respond.channel.send(embed = embed)
 
 
 class InfoToDisplay:
@@ -165,11 +181,19 @@ class InfoToDisplay:
 
     @staticmethod
     async def respond_with_info(channel, info_obj):
+        global MESASGE_DISPATCHER
         logging.info('Responding with INFO: ' + str(info_obj.title))   
         embed = form_embed(colour = discord.Colour.green(),
                            descr  = info_obj.text,
                            title  = info_obj.title,
                            fields = info_obj.fields,
                            footer = info_obj.footer)
+
+        task = Task(MsgActType.SEND, 
+                    content_type = ContentType.EMBED,
+                    content = embed, 
+                    channel_id = channel.id)
+                    
+        MESASGE_DISPATCHER.order_task_to_execute(task)
         
-        await channel.send(embed = embed)
+        #await channel.send(embed = embed)

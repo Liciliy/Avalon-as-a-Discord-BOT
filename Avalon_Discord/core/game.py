@@ -60,6 +60,8 @@ class AvaGame:
     _chat_handler  = None
 
     _phase = None
+
+    _messages_dispatcher = None
     
     def __init__(self, 
                  game_id, 
@@ -67,7 +69,8 @@ class AvaGame:
                  game_master_id,
                  game_master_name, 
                  init_channel_id,
-                 bot_client_link):
+                 bot_client_link,
+                 messages_dispatcher):
         """Creates game object
 
         Arguments:
@@ -96,6 +99,8 @@ class AvaGame:
 
         self._voice_handler = VoiceChannelHandler(self)   
         self._chat_handler  = ChatHandler(self)
+
+        self._messages_dispatcher = messages_dispatcher
 
     def add_player(self, player_id, player_name):
         self.players_ids_list.append(player_id)
@@ -253,6 +258,9 @@ class AvaGame:
     async def handle_player_add_reaction(self, player_id, payload):
         await self.player_id_to_txt_ch_handler_dict[player_id].\
             react_on_reaction(payload)
+
+    def order_task_to_msg_dispatcher(self, task):
+        self._messages_dispatcher.order_task_to_execute(task)
 
     @property
     def game_hosting_guild(self):

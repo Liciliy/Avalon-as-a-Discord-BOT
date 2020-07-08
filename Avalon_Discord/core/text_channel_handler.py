@@ -18,6 +18,8 @@ from .panels.error_pannel_handler import\
 from .panels.conn_st_panel_handler import\
     ConnectionStatusPanelHandler
 
+from .messages_dispatching.task import Task, ContentType, MsgActType
+
 class TextChannelHandler:
     _game         = None
     _text_channel = None
@@ -111,7 +113,14 @@ class TextChannelHandler:
         dmc = self._user.dm_channel
 
         logging.debug('Sending game txt channel invite to: ' + self._user.name)
-        await dmc.send(self._invite)
+
+        self._game.order_task_to_msg_dispatcher(
+            Task(
+                type         = MsgActType.SEND,
+                content_type = ContentType.TEXT,
+                content      = self._invite,
+                channel_id   = dmc.id))
+        #await dmc.send(self._invite)
     
     async def display_error_msg(self, error_content):
         await self._error_pnl_handler.publish(error_content)
