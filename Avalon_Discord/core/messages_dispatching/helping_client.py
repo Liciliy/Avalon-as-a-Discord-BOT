@@ -55,7 +55,13 @@ class HelpingClient(discord.Client):
                             await self.http.delete_message(
                                 task.channel_id, 
                                 task.message_id)
-                            
+
+                        elif task.type == MsgActType.ADD_REACT:
+                            logging.info('Adding reaction: ' + str(task.content))
+
+                            await self.http.add_reaction(channel_id = task.channel_id, 
+                                                         message_id = task.message_id, 
+                                                         emoji = task.content)                            
     
                         elif task.type == MsgActType.SEND or task.type == MsgActType.EDIT:
                             text  = None
@@ -73,7 +79,10 @@ class HelpingClient(discord.Client):
                             elif task.content_type == ContentType.TEXT:
                                 logging.info('Message type is Text.')
                                 text = task.content
-    
+                            else:
+                                # TODO think about processing an error somehow here.
+                                logging.error('Wrong content type received: ' 
+                                               + str(task.content_type))
     
                             if task.type == MsgActType.SEND:
                                 logging.info('Sending a message.')

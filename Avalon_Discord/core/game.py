@@ -21,6 +21,9 @@ from .text_channel_handler import\
 from .content_handlers.game_chat_handler import\
     ChatHandler
 
+from .content_handlers.timer_content_handler import\
+    TimerContentHandler
+
 from .emoji_handler import\
     EmojiHandler
 
@@ -58,6 +61,9 @@ class AvaGame:
 
     _voice_handler = None
     _chat_handler  = None
+
+    # Game contents handlers
+    _timer_content_handler = None
 
     _phase = None
 
@@ -98,7 +104,7 @@ class AvaGame:
         self.bot_client_link = bot_client_link   
 
         self._voice_handler = VoiceChannelHandler(self)   
-        self._chat_handler  = ChatHandler(self)
+        self._chat_handler  = ChatHandler(self)        
 
         self._messages_dispatcher = messages_dispatcher
 
@@ -148,6 +154,26 @@ class AvaGame:
             await txt_ch_handler.create_channel_and_invite_player()
         
         await self._publish_chat()
+        self._timer_content_handler =\
+            TimerContentHandler(
+                self, 
+                self.player_id_to_txt_ch_handler_dict.values(),
+                self.player_id_to_txt_ch_handler_dict[self.game_master_id].id)
+        await self._timer_content_handler.panel_handlers_setup()
+
+        # TODO test code below. Remove later:
+
+
+        master_ch_id = self.player_id_to_txt_ch_handler_dict[self.game_master_id].id
+        
+        talker_id = None
+        for ch in self.player_id_to_txt_ch_handler_dict.values():
+            if ch.id != master_ch_id:
+                talker_id = ch.id
+                break
+
+        await self._timer_content_handler.start_timer(3, 60, 'Алісія вікандер', talker_id)
+        # ================ End test code ================ 
               
     async def start_game(self, msg):    
 

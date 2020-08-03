@@ -187,4 +187,19 @@ ONLY_ONE_CAN_BE_MERLIN = 'Тільки один гравець може бути
 ONLY_ONE_CAN_BE_MERLIN = 'Гравець позначений як Мерлін. Зробити остаточний вибір?'
 
 
+#========== Timer panel ======================================================#
+TIMER_YOU_ARE_TALKING   = 'Ви говорите!'
+TIMER_X_IS_TALKING      = 'Говорить {name}.'
+TIMER_MERLIN_HUNT       = 'Полювання на Мерліна. '
+TIMER_X_ARE_TALKING     = 'Говорять {group}.'
+TIMER_RED_PALYERS       = 'червоні гравці'
+TIMER_ALL_PLAYERS       = 'усі гравці'
+TIMER_TIME_LEFT         = ' Час:\n'
+TIMER_LESS_THAN_X_LEFT  = ' Лишилось менше ніж {sec} секунд!'
+TIMER_TIME_HAS_ENDED_UP = '⏰ Час закінчився!'
+TIMER_X_PREPARS_TO_TALK = '{name} готується говорити.'
+TIMER_PREPARE_TO_TALK   = '❗ Приготуйтесь говорити ❗'
+#=============================================================================#
+
+
 

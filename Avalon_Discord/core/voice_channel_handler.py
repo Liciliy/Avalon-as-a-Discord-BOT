@@ -16,9 +16,9 @@ class VoiceChannelHandler:
 
         # This will forbid users from other games to join the channel.
         overwrites[game_guild.default_role] = \
-                    discord.PermissionOverwrite(connect              = True, 
-                                                speak                = True,
-                                                use_voice_activation = True) 
+                    discord.PermissionOverwrite(connect              = False, 
+                                                speak                = False,
+                                                use_voice_activation = False) 
 
         for role in self.__game.player_id_to_role_dict.values():
             overwrites[role] = discord.PermissionOverwrite(
@@ -26,6 +26,7 @@ class VoiceChannelHandler:
                                             speak                = True,
                                             use_voice_activation = True)
 
+        logging.debug('Voice channel overwrites: ' +str(overwrites))
         self.__voice_channel = \
             await game_guild.create_voice_channel(
                 name       = 'Game voice of ' +self.__game.game_master_name, 

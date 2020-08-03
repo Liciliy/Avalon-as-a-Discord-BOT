@@ -16,7 +16,7 @@ class VotePanelHandler(AbsGamePanelHandler):
     def __init__(self, game, channel):
         super().__init__(game, channel, ContentType.EMBED)
         
-    async def __create_and_publish(self, content):
+    async def _create_and_publish(self, content):
         self._header_message = await self._channel.send(
             content = content[VotePanelHandler.HEADER_KEY])
         
@@ -28,7 +28,8 @@ class VotePanelHandler(AbsGamePanelHandler):
         
         self._msg_content = content
 
-    async def __update_and_publish(self, content):
+    # TODO use task orrder/message dispatcher here
+    def _update_and_publish(self, content):
         await self._header_message.edit(
             content = content[VotePanelHandler.HEADER_KEY])
 
@@ -55,14 +56,15 @@ class VotePanelHandler(AbsGamePanelHandler):
         if old_emoji != None:
             await old_emoji.delete()
 
+    # TODO use task orrder/message dispatcher here
     async def publish(self, content = None):
         if self._header_message == None and self._emoji_message == None:
             logging.info('Creating vote messages')
-            await self.__create_and_publish(content)
+            await self._create_and_publish(content)
 
         elif self._header_message != None and self._emoji_message != None:
             logging.info('Editing vote messages')
-            await self.__update_and_publish(content)
+            self._update_and_publish(content)
 
         else:
             logging.critical(

@@ -7,14 +7,22 @@ import core.panels.constants_game_panel_handler as const
 
 from ..common import NotImplementedMethodUsage
 
-from ..messages_dispatching.task import ContentType
+from ..messages_dispatching.task import ContentType, Task, MsgActType
+
+class PanelContent:
+    text      = None
+    reactions = None
+
+    def __init__(self, text = None, reactions = None):
+        self.text = text
+        self.reactions = reactions
 
 class AbsGamePanelHandler:
-    _game         = None
-    _channel      = None
-    _message      = None
-    _msg_content  = None
-    content_type  = None
+    _game          = None
+    _channel       = None
+    _message       = None
+    _msg_content   = None
+    _content_type  = None
     
     def __init__(self, game, channel, content_type):
         self._game         = game
@@ -25,13 +33,14 @@ class AbsGamePanelHandler:
         logging.critical('Unimplemented method usage!')
         raise NotImplementedMethodUsage('Method name: publish')
 
-    async def __update_and_publish(self, content = None):
+    # TODO this must not be async since the operation will be sent to other thread.
+    def _update_and_publish(self, content = None):
         logging.critical('Unimplemented method usage!')
-        raise NotImplementedMethodUsage('Method name: __update_and_publish')
+        raise NotImplementedMethodUsage('Method name: _update_and_publish')
 
-    async def __create_and_publish(self, content = None): 
+    async def _create_and_publish(self, content = None): 
         logging.critical('Unimplemented method usage!')
-        raise NotImplementedMethodUsage('Method name: __create_and_publish')
+        raise NotImplementedMethodUsage('Method name: _create_and_publish')
 
     async def delete(self):
         logging.critical('Unimplemented method usage!')
@@ -59,9 +68,39 @@ class AbsGamePanelHandler:
 
         logging.error(str_to_log)
 
+    def order_edit_task(self, 
+                        new_content, 
+                        message_id):
+
+        edit_task = Task(type = MsgActType.EDIT,
+                         content = new_content,
+                         content_type = self._content_type,
+                         channel_id = self._channel.id,
+                         message_id = message_id)
+
+        self._game.order_task_to_msg_dispatcher(edit_task)
+
+    def order_add_reaction(self,
+                           reaction,
+                           message_id):
+        add_reactions_task = Task(type = MsgActType.ADD_REACT,
+                                  content = reaction,
+                                  content_type = ContentType.REACTIONS,
+                                  channel_id = self._channel.id,
+                                  message_id = message_id)
+
+        self._game.order_task_to_msg_dispatcher(add_reactions_task)
+
     @property
     def id(self):
         result = None
         if self._message != None:
             result = self._message.id
+        return result
+
+    @property
+    def channel_id(self):
+        result = None
+        if self._channel != None:
+            result = self._channel.id
         return result

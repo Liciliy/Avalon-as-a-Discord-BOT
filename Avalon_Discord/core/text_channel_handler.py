@@ -15,6 +15,9 @@ from .panels.chat_panel_handler import\
 from .panels.error_pannel_handler import\
     ErrorPanelHandler
 
+from .panels.timer_panel_handler import\
+    TimerPanelHandler
+
 from .panels.conn_st_panel_handler import\
     ConnectionStatusPanelHandler
 
@@ -29,6 +32,7 @@ class TextChannelHandler:
 
     _error_pnl_handler = None
     _chat_pnl_handler  = None
+    _timer_pnl_handler = None
 
     _panels_handlers_list = None
     def __init__(self, game, user, role):
@@ -37,7 +41,7 @@ class TextChannelHandler:
         Arguments:
             game {game}            -- the game instance to be played.
             user {discord.user}    -- the channel game user (player)
-            role {discord.role}    -- role of the user o nthe server.
+            role {discord.role}    -- role of the user on the server.
         """
         self._game         = game
         self._user         = user
@@ -75,9 +79,13 @@ class TextChannelHandler:
              ErrorPanelHandler(self._game, self._text_channel)
         self._chat_pnl_handler  =\
              ChatPanelHandler(self._game, self._text_channel)
+        self._timer_pnl_handler =\
+             TimerPanelHandler(self._game, self._text_channel)
+       
 
         self._panels_handlers_list = [self._error_pnl_handler, 
-                                      self._chat_pnl_handler]
+                                      self._chat_pnl_handler,
+                                      self._timer_pnl_handler]
 
         await self.invite_player()
 
@@ -130,6 +138,7 @@ class TextChannelHandler:
 
     async def react_on_reaction(self, payload):
         for pannel_handler in self._panels_handlers_list:
+            # TODO replace below wif with a new func: is_pannel_handle_msg(msg_id)
             if pannel_handler != None and pannel_handler.id == payload.message_id:
                 await pannel_handler.on_reaction(payload)
 
@@ -147,6 +156,10 @@ class TextChannelHandler:
     @property
     def user_mention(self):
         return self._user.mention
+
+    @property
+    def timer_panel(self):
+        return self._timer_pnl_handler
 
 class GameMasterTxtChHandler(TextChannelHandler):
     _connection_info_pnl_handler = None

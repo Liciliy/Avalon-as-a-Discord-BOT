@@ -13,12 +13,13 @@ class ErrorPanelHandler(AbsGamePanelHandler):
     def __init__(self, game, channel):
         super().__init__(game, channel, ContentType.EMBED)
 
-    async def __create_and_publish(self, content):
+    async def _create_and_publish(self, content):
         self._message = await self._channel.send(embed = content)
         self._msg_content = self._message.content
-
-    async def __update_and_publish(self, content):
-        await self._message.edit(embed = content)
+    
+    # TODO use task orrder/message dispatcher here
+    def _update_and_publish(self, content):
+        # await self._message.edit(embed = content)
         self._msg_content = self._message.content
 
     async def delete(self):
@@ -34,8 +35,8 @@ class ErrorPanelHandler(AbsGamePanelHandler):
             colour = discord.Colour.red())
         
         if self._message == None:
-            await self.__create_and_publish(error_embed)
-        else: await self.__update_and_publish(error_embed)
+            await self._create_and_publish(error_embed)
+        else: self._update_and_publish(error_embed)
     
         await self._message.add_reaction(const.RED_CROSS)
 

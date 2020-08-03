@@ -62,3 +62,7 @@ class AbstractPhase:
         logging.critical('Unimplemented method usage!')
         raise NotImplementedMethodUsage('Method name: get_selected_players')
 
+    def end_phase(self):
+        logging.critical('Unimplemented method usage!')
+        raise NotImplementedMethodUsage('Method name: end_phase')
+

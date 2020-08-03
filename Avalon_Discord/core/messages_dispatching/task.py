@@ -3,11 +3,13 @@ class ContentType:
     FILE  = 0
     EMBED = 1
     TEXT  = 2
+    REACTIONS = 4
 
 class MsgActType:
     SEND = 0
     EDIT = 1
     DEL  = 2
+    ADD_REACT = 3
 
 class Task:
     type         = None
