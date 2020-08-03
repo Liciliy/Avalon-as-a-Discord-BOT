@@ -138,9 +138,8 @@ async def on_voice_state_update(member, before, after):
 async def on_raw_reaction_add(payload):
     global READY
 
-    if not READY:                     return
-
-    # TODO ignore if the bot triggers this event.
+    if not READY:                         return
+    if payload.user_id == client.user.id: return
 
     logging.info('Got reaction added/removed event')
     await GameManager.handle_reaction_added_event(payload)

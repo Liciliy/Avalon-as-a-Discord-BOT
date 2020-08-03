@@ -1,3 +1,4 @@
+import copy
 import asyncio
 import logging
 
@@ -31,7 +32,7 @@ class TimerContentHandler:
 
     RESTART_REACT = '🔄'
     PAUSE_REACT   = '⏸️'
-    END_REACT     = '🛑'
+    END_REACT     = '⛔'
     RESUME_REACT  = '▶️'
 
     # One time initiated variables
@@ -67,7 +68,14 @@ class TimerContentHandler:
         for pannel_hdlr in self._timer_panels_handlers:
             pannel_hdlr.set_content_handler(self)
             await pannel_hdlr.publish('No timer active yet!')
-
+            
+            if pannel_hdlr.channel_id == self._master_channel_id:
+                reactions = [TimerContentHandler.PAUSE_REACT,
+                             TimerContentHandler.RESTART_REACT,
+                             TimerContentHandler.RESUME_REACT]
+                pannel_hdlr.update_and_publish(
+                    PanelContent(None, reactions))
+            
     
     def update_panels(self, time_left, initial_update = False):      
         
@@ -290,9 +298,21 @@ class TimerContentHandler:
         # TODO think about starting of the timer in a separate thread.
         await self._timer.start()
 
+    def handle_reaction(self, emoji_str):
+        if emoji_str   == TimerContentHandler.RESTART_REACT:
+            self._timer.restart()
+        elif emoji_str == TimerContentHandler.PAUSE_REACT:
+            self._timer.pause() 
+        elif emoji_str == TimerContentHandler.END_REACT:
+            self._timer.stop()
+        elif emoji_str == TimerContentHandler.RESUME_REACT:
+            self._timer.resume()
+
 
 class Timer:
     TIMER_SLEEP_TIME_S   = 0.05
+
+    # ==================== Animation part ==================
     NUM_OF_SEGMENTS      = 5
     ANIMATION_FRAME_TIME = 3
 
@@ -313,16 +333,19 @@ class Timer:
     _seg_animation         = None
 
     _segments              = None
-    
-    _is_active   = None
-    _current_animation_start_time = None
-    
+    # ==================== Animation part END ==============    
+    _update_panel                 = None
+    _current_animation_start_time = None   
+    _end_time                     = None
+    _time_left                    = None
+    _pause_time                   = None
 
-    _end_time = None
 
     # Below data is received from top execution layer
     _timer_content_handler = None
     _time_to_count         = None
+    _is_active             = None
+    _is_paused             = None
 
     def __init__(self, time, timer_content_handler):
         
@@ -340,12 +363,30 @@ class Timer:
 
         self._seg_animation = Timer.SEGMENT_ANIMATION
 
-        logging.info('Timer created.')
+        self._is_paused = False
 
+        self._update_panel = False
+
+        logging.info('Timer created.')
 
     def stop(self):
         self._is_active = False
+        logging.info('Timer is stoped.')
 
+    def pause(self):
+        self._is_paused  = True
+        self._time_left  = self._end_time - asyncio.get_running_loop().time() 
+        self._pause_time = asyncio.get_running_loop().time() 
+
+        logging.info('Timer is paused.')
+
+    def resume(self):        
+        self._end_time = asyncio.get_running_loop().time() + self._time_left
+        self._current_animation_start_time =\
+            self._current_animation_start_time +\
+            (asyncio.get_running_loop().time() - self._pause_time)
+        self._is_paused = False
+        logging.info('Timer is resumed.')
 
     async def start(self):
         self._is_active = True
@@ -354,44 +395,62 @@ class Timer:
         self._current_animation_start_time = asyncio.get_running_loop().time()
         logging.info('Timer is launched.')
         await self._run_with_while()
+        
+    def restart(self):
+        self._end_time     = asyncio.get_running_loop().time() + self._time_to_count        
+        self._current_animation_start_time = asyncio.get_running_loop().time()
+        self._update_panel = True
+        self._segments = Timer._get_start_time_segments()
+        self._curr_animated_segment = 0
+        self._curr_segment_lifetime = 0
+        self._seg_animation = Timer.SEGMENT_ANIMATION
+        self._is_paused = False
+        self._is_active = True
+        logging.info('Timer is restarted.')
 
-    async def _run_with_while(self): 
-
-        update_panel = False
-
-        while (asyncio.get_running_loop().time() < self._end_time) and self._is_active: 
+    def _handle_timer_iteration_actions(self):
+        if self._curr_segment_lifetime >= self._max_segment_lifetime\
+          and self._curr_animated_segment < Timer.MAX_SEGMENT_INDEX:
             
-            if self._curr_segment_lifetime >= self._max_segment_lifetime\
-              and self._curr_animated_segment < Timer.MAX_SEGMENT_INDEX:
-                
-                # One of the segments has expired. Mark it as axpired and mark next 
-                # one as active.
-                self._segments[self._curr_animated_segment] = Timer.EXPIRED_SEGMENT_EMOJI    
-                self._curr_animated_segment = self._curr_animated_segment  + 1    
-                self._curr_segment_lifetime = 0
-                update_panel = True
+            # One of the segments has expired. Mark it as axpired and mark next 
+            # one as active.
+            self._segments[self._curr_animated_segment] = Timer.EXPIRED_SEGMENT_EMOJI    
+            self._curr_animated_segment = self._curr_animated_segment  + 1    
+            self._curr_segment_lifetime = 0
+            self._update_panel = True
 
+        if asyncio.get_running_loop().time() - self._current_animation_start_time\
+             >= \
+           self.ANIMATION_FRAME_TIME:
 
-            if asyncio.get_running_loop().time() - self._current_animation_start_time\
-                 >= \
-               self.ANIMATION_FRAME_TIME:
+            self._current_animation_start_time = asyncio.get_running_loop().time()
 
-                self._current_animation_start_time = asyncio.get_running_loop().time()
+            self._segments[self._curr_animated_segment] = self._seg_animation[0]
+            self._seg_animation.rotate()
 
-                self._segments[self._curr_animated_segment] = self._seg_animation[0]
-                self._seg_animation.rotate()
-
-                update_panel = True
+            self._update_panel = True
     
-            if update_panel:                
-                update_panel = False
-                time_left = self._end_time - asyncio.get_running_loop().time() 
-                self._timer_content_handler.update_panels(int(time_left))                         
+        if self._update_panel:                
+            self._update_panel = False
+            time_left = self._end_time - asyncio.get_running_loop().time() 
+            self._timer_content_handler.update_panels(int(time_left))
+
+    async def _run_with_while(self):        
+
+        while (asyncio.get_running_loop().time() < self._end_time) \
+            and self._is_active: 
+
+            # If timer is paused it will cycled in the below loop until
+            # being resumed by a user.
+            while self._is_paused:
+                await asyncio.sleep(Timer.TIMER_SLEEP_TIME_S)
+            
+            self._handle_timer_iteration_actions()                         
             
             await asyncio.sleep(Timer.TIMER_SLEEP_TIME_S)
             self._curr_segment_lifetime += Timer.TIMER_SLEEP_TIME_S
     
-            
+        logging.info('Timer loop ended. Notifying timer content handler.') 
         self._timer_content_handler.timer_expired()
             
     @staticmethod

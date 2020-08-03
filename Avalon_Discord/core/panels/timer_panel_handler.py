@@ -1,4 +1,6 @@
 import asyncio
+import logging 
+import core.panels.constants_game_panel_handler as const
 
 from collections import deque
 
@@ -6,6 +8,9 @@ from .abstract_panel_handler import\
     AbsGamePanelHandler,\
     ContentType,\
     PanelContent
+
+from ..content_handlers.timer_content_handler import\
+    TimerContentHandler
    
 class TimerPanelHandler(AbsGamePanelHandler):
 
@@ -62,3 +67,27 @@ class TimerPanelHandler(AbsGamePanelHandler):
         if self._message == None:
             await self._create_and_publish(content)
         else: self._update_and_publish(content)    
+
+    async def on_reaction(self, payload):
+        str_to_log = 'Got reaction act: '
+
+        if   payload.event_type == const.REACTION_ADD:
+            str_to_log = str_to_log + const.REACTION_ADD + '. '\
+                       + 'Added by: '   + payload.member.name + '. '\
+                       + 'Message ID: ' + str(payload.message_id) + '. '\
+                       + 'User ID: '    + str(payload.user_id) + '. '\
+                       + 'Channel ID: ' + str(payload.channel_id) + '. '\
+                       + 'Guild ID: '   + str(payload.guild_id) + '. '\
+                       + 'Emoji: '      + str(payload.emoji) + '. '  
+            
+        elif payload.event_type == const.REACTION_REM:
+            str_to_log += const.REACTION_REM + '. '\
+                       + 'Message ID: ' + str(payload.message_id) + '. '\
+                       + 'User ID: '    + str(payload.user_id) + '. '\
+                       + 'Channel ID: ' + str(payload.channel_id) + '. '\
+                       + 'Guild ID: '   + str(payload.guild_id) + '. '\
+                       + 'Emoji: '      + str(payload.emoji) + '. '
+
+        logging.info(str_to_log)
+
+        self._content_handler.handle_reaction(str(payload.emoji))

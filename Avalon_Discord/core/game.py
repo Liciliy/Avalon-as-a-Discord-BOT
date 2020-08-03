@@ -172,7 +172,7 @@ class AvaGame:
                 talker_id = ch.id
                 break
 
-        await self._timer_content_handler.start_timer(3, 60, 'Алісія вікандер', talker_id)
+        await self._timer_content_handler.start_timer(0, 60, 'Алісія вікандер', talker_id)
         # ================ End test code ================ 
               
     async def start_game(self, msg):    
