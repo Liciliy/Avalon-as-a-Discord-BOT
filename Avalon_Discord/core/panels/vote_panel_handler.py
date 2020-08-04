@@ -25,10 +25,12 @@ class VotePanelHandler(AbsGamePanelHandler):
 
         for reac in content[VotePanelHandler.REACTIONS_KEY]:
             await self._emoji_message.add_reaction(reac)
+
+        self._list_of_messages = [self._header_message, self._emoji_message]
         
         self._msg_content = content
 
-    # TODO use task orrder/message dispatcher here
+    # TODO use task order/message dispatcher here
     def _update_and_publish(self, content):
         await self._header_message.edit(
             content = content[VotePanelHandler.HEADER_KEY])

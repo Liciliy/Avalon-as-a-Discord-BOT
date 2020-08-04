@@ -138,9 +138,12 @@ class TextChannelHandler:
 
     async def react_on_reaction(self, payload):
         for pannel_handler in self._panels_handlers_list:
-            # TODO replace below wif with a new func: is_pannel_handle_msg(msg_id)
-            if pannel_handler != None and pannel_handler.id == payload.message_id:
+
+            if pannel_handler != None \
+              and pannel_handler.is_pnl_hndlr_msg(payload.message_id):
+
                 await pannel_handler.on_reaction(payload)
+                break
 
     def history(self, limit):
         return self._text_channel.history(limit = limit)

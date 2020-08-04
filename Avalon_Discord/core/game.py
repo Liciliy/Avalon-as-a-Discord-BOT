@@ -159,7 +159,7 @@ class AvaGame:
                 self, 
                 self.player_id_to_txt_ch_handler_dict.values(),
                 self.player_id_to_txt_ch_handler_dict[self.game_master_id].id)
-        await self._timer_content_handler.panel_handlers_setup()
+        await self._timer_content_handler.initial_render()
 
         # TODO test code below. Remove later:
 

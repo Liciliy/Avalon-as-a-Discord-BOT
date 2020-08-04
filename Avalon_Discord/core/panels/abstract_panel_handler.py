@@ -18,17 +18,32 @@ class PanelContent:
         self.reactions = reactions
 
 class AbsGamePanelHandler:
-    _game          = None
-    _channel       = None
-    _message       = None
-    _msg_content   = None
-    _content_type  = None
+    _game             = None
+    _channel          = None
+    _message          = None
+    _list_of_messages = None
+    _msg_content      = None
+    _content_type     = None
     
     def __init__(self, game, channel, content_type):
         self._game         = game
         self._channel      = channel
         self._content_type = content_type
+        self._list_of_messages = list()
 
+    def is_pnl_hndlr_msg(self, message_to_check_id):
+        result = False
+
+        if self._message != None and self.id == message_to_check_id:
+            result = True
+        elif self._list_of_messages != None:
+            for msg in self._list_of_messages:
+                if msg.id == message_to_check_id:
+                    result = True
+                    break
+
+        return result
+            
     async def publish(self, content = None):
         logging.critical('Unimplemented method usage!')
         raise NotImplementedMethodUsage('Method name: publish')
@@ -111,7 +126,6 @@ class AbsGamePanelHandler:
 
         self._game.order_task_to_msg_dispatcher(del_reactions_task)
 
-
     def order_del_own_reaction(self,
                                reaction,
                                message_id):
@@ -123,8 +137,6 @@ class AbsGamePanelHandler:
                                   message_id = message_id)
 
         self._game.order_task_to_msg_dispatcher(del_own_react_task)
-
-
 
     @property
     def id(self):

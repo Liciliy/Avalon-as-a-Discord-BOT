@@ -6,6 +6,7 @@ from collections import deque
 
 import languages.ukrainian_lang as lang
 from ..panels.abstract_panel_handler import PanelContent
+from .abstract_content_handler import AbsContentHandler
 
 class TimerType:
     TALKING_TIMER          = 0
@@ -13,9 +14,7 @@ class TimerType:
     BALAGAN_TIMER          = 2
     MERLIN_HUNT_TALK_TIMER = 3
 
-# TODO make an abstract content handler that will at least 
-# contain 'initial_render' fucntion
-class TimerContentHandler:
+class TimerContentHandler(AbsContentHandler):
     TIMER_RUNS_OUT_THR_SEC = 15
     YOU_ARE_TALKING   = lang.TIMER_YOU_ARE_TALKING
     X_IS_TALKING      = lang.TIMER_X_IS_TALKING
@@ -36,9 +35,9 @@ class TimerContentHandler:
     RESUME_REACT  = '▶️'
 
     # One time initiated variables
-    _master_channel_id     = None    
-    _timer_panels_handlers = None
-    _game = None
+    _master_channel_id = None    
+    _panels_handlers   = None
+    _game              = None
 
     # Per game round changed variables
     _timer = None
@@ -53,19 +52,20 @@ class TimerContentHandler:
                  game, 
                  channels_handlers,
                  master_channel_id):
-        self._game = game
-        self._master_channel_id = master_channel_id
-        self._timer_panels_handlers = list()
+        
+        super().__init__(game, master_channel_id)
 
         for game_ch in channels_handlers:
-            self._timer_panels_handlers.append(game_ch.timer_panel)
+            self._panels_handlers.append(game_ch.timer_panel)
         
-        self._timer = Timer(60, self)
+        #self._timer = Timer(60, self)
 
     # TODO think about move this one into init()
-    async def panel_handlers_setup(self):
+    # Probably impossible, because init cant be async. And here 
+    # an awaited publish must be used.
+    async def initial_render(self):
         
-        for pannel_hdlr in self._timer_panels_handlers:
+        for pannel_hdlr in self._panels_handlers:
             pannel_hdlr.set_content_handler(self)
             await pannel_hdlr.publish('No timer active yet!')
             
@@ -75,8 +75,7 @@ class TimerContentHandler:
                              TimerContentHandler.RESUME_REACT]
                 pannel_hdlr.update_and_publish(
                     PanelContent(None, reactions))
-            
-    
+         
     def update_panels(self, time_left, initial_update = False):      
         
         actual_timer_segments = self._timer.get_segments_string
@@ -85,9 +84,7 @@ class TimerContentHandler:
         # Execute function in the loop for each panel handler.
         
         t_type = self._timer_type
-        for pannel_hdlr in self._timer_panels_handlers:
-            # TODO If is initial update - emoji must 
-            # be added to master timer - so he could controll time.
+        for pannel_hdlr in self._panels_handlers:
             if t_type == TimerType.TALK_PREPARATION_TIME:
                 self._preparation_panels_update(pannel_hdlr,
                                                 initial_update)
@@ -251,7 +248,7 @@ class TimerContentHandler:
         logging.info('Timer notified about its expiration.')
         if self._timer_type == TimerType.TALKING_TIMER:
 
-            for pannel_hdlr in self._timer_panels_handlers:    
+            for pannel_hdlr in self._panels_handlers:    
                 if pannel_hdlr.channel_id == self._talker_with_timer_ch_id:
 
                     pannel_hdlr.order_del_own_reaction(TimerContentHandler.END_REACT,
@@ -259,6 +256,7 @@ class TimerContentHandler:
                     break 
 
         self.update_panels(0)
+        # TODO here notify game phase about timer exparation.
 
     # TODO use start as a high priot awaited task.
     async def start_timer(self, 
