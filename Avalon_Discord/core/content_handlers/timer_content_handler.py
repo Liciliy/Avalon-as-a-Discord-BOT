@@ -132,11 +132,7 @@ class TimerContentHandler:
             else:
                 text =\
                     TimerContentHandler.X_PREPARS_TO_TALK.format(
-                        name = self._current_talker_name)
-
-            if pannel_hdlr.channel_id == self._master_channel_id:
-                reactions = [TimerContentHandler.PAUSE_REACT, 
-                             TimerContentHandler.RESUME_REACT]
+                        name = self._current_talker_name)            
 
             pannel_hdlr.update_and_publish(PanelContent(text, reactions))
 
@@ -164,10 +160,6 @@ class TimerContentHandler:
                         format(name = self._current_talker_name) \
                     + TimerContentHandler.TIME_LEFT \
                     + actual_timer_segments
-            if initial_update: 
-                reactions = [TimerContentHandler.PAUSE_REACT,
-                             TimerContentHandler.RESTART_REACT,
-                             TimerContentHandler.RESUME_REACT]
 
             pannel_hdlr.update_and_publish(PanelContent(text, reactions))
         # Handling non-talkers
@@ -200,14 +192,7 @@ class TimerContentHandler:
             text =  TimerContentHandler.X_ARE_TALKING.\
                         format(group = TimerContentHandler.ALL_PLAYERS) \
                     + TimerContentHandler.TIME_LEFT \
-                    + actual_timer_segments
-            
-            # Handling reactions.
-            if initial_update \
-              and pannel_hdlr.channel_id == self._master_channel_id:
-                reactions = [TimerContentHandler.PAUSE_REACT,
-                             TimerContentHandler.RESTART_REACT,
-                             TimerContentHandler.RESUME_REACT]
+                    + actual_timer_segments  
             
             pannel_hdlr.update_and_publish(PanelContent(text, reactions))
 
@@ -243,14 +228,6 @@ class TimerContentHandler:
                     + TimerContentHandler.TIME_LEFT \
                     + actual_timer_segments
 
-            # Handling master reactions.
-            if initial_update \
-              and pannel_hdlr.channel_id == self._master_channel_id:
-                reactions = [TimerContentHandler.PAUSE_REACT,
-                             TimerContentHandler.RESTART_REACT,
-                             TimerContentHandler.RESUME_REACT]
-                
-
             pannel_hdlr.update_and_publish(PanelContent(text, reactions))
         
         # Handling non-talking players.
@@ -272,6 +249,15 @@ class TimerContentHandler:
 
     def timer_expired(self):
         logging.info('Timer notified about its expiration.')
+        if self._timer_type == TimerType.TALKING_TIMER:
+
+            for pannel_hdlr in self._timer_panels_handlers:    
+                if pannel_hdlr.channel_id == self._talker_with_timer_ch_id:
+
+                    pannel_hdlr.order_del_own_reaction(TimerContentHandler.END_REACT,
+                                                       pannel_hdlr.id)
+                    break 
+
         self.update_panels(0)
 
     # TODO use start as a high priot awaited task.
@@ -370,23 +356,30 @@ class Timer:
         logging.info('Timer created.')
 
     def stop(self):
-        self._is_active = False
+        self._is_active  = False
+        self._is_paused  = False
         logging.info('Timer is stoped.')
 
     def pause(self):
-        self._is_paused  = True
-        self._time_left  = self._end_time - asyncio.get_running_loop().time() 
-        self._pause_time = asyncio.get_running_loop().time() 
+        if not self._is_paused and self._is_active:        
+            self._is_paused  = True
+            self._time_left  = self._end_time - asyncio.get_running_loop().time() 
+            self._pause_time = asyncio.get_running_loop().time() 
+    
+            logging.info('Timer is paused.')
+            
+        else: logging.info('Already paused or stopped.')
 
-        logging.info('Timer is paused.')
+    def resume(self): 
+        if self._is_paused and self._is_active:     
+            self._end_time = asyncio.get_running_loop().time() + self._time_left
+            self._current_animation_start_time =\
+                self._current_animation_start_time +\
+                (asyncio.get_running_loop().time() - self._pause_time)
+            self._is_paused = False
+            logging.info('Timer is resumed.')
 
-    def resume(self):        
-        self._end_time = asyncio.get_running_loop().time() + self._time_left
-        self._current_animation_start_time =\
-            self._current_animation_start_time +\
-            (asyncio.get_running_loop().time() - self._pause_time)
-        self._is_paused = False
-        logging.info('Timer is resumed.')
+        else: logging.info('Cant resume - either stopped or not paused.')
 
     async def start(self):
         self._is_active = True
@@ -397,16 +390,18 @@ class Timer:
         await self._run_with_while()
         
     def restart(self):
-        self._end_time     = asyncio.get_running_loop().time() + self._time_to_count        
-        self._current_animation_start_time = asyncio.get_running_loop().time()
-        self._update_panel = True
-        self._segments = Timer._get_start_time_segments()
-        self._curr_animated_segment = 0
-        self._curr_segment_lifetime = 0
-        self._seg_animation = Timer.SEGMENT_ANIMATION
-        self._is_paused = False
-        self._is_active = True
-        logging.info('Timer is restarted.')
+        if self._is_active: 
+            self._end_time     = asyncio.get_running_loop().time() + self._time_to_count        
+            self._current_animation_start_time = asyncio.get_running_loop().time()
+            self._update_panel = True
+            self._segments = Timer._get_start_time_segments()
+            self._curr_animated_segment = 0
+            self._curr_segment_lifetime = 0
+            self._seg_animation = Timer.SEGMENT_ANIMATION
+            self._is_paused = False
+            self._is_active = True
+            logging.info('Timer is restarted.')
+        else: logging.info('Cant restart - timer is stopped.')
 
     def _handle_timer_iteration_actions(self):
         if self._curr_segment_lifetime >= self._max_segment_lifetime\

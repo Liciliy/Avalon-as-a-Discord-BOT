@@ -76,11 +76,11 @@ class TextChannelHandler:
                 overwrites=overwrites)
 
         self._error_pnl_handler =\
-             ErrorPanelHandler(self._game, self._text_channel)
+             ErrorPanelHandler(self._game, self)
         self._chat_pnl_handler  =\
-             ChatPanelHandler(self._game, self._text_channel)
+             ChatPanelHandler(self._game, self)
         self._timer_pnl_handler =\
-             TimerPanelHandler(self._game, self._text_channel)
+             TimerPanelHandler(self._game, self)
        
 
         self._panels_handlers_list = [self._error_pnl_handler, 
@@ -152,6 +152,10 @@ class TextChannelHandler:
     @property
     def user_name(self):
         return self._user.name
+
+    @property
+    def user_id(self):
+        return self._user.id
 
     @property
     def user_mention(self):

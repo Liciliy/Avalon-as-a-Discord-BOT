@@ -91,6 +91,34 @@ class AbsGamePanelHandler:
 
         self._game.order_task_to_msg_dispatcher(add_reactions_task)
 
+    def order_del_reaction(self,
+                           reaction,
+                           message_id):
+
+        del_reactions_task = Task(type = MsgActType.DEL_REACT,
+                                  content = reaction,
+                                  content_type = ContentType.REACTIONS,
+                                  channel_id = self._channel.id,
+                                  message_id = message_id,
+                                  member_id = self._channel.user_id)
+
+        self._game.order_task_to_msg_dispatcher(del_reactions_task)
+
+
+    def order_del_own_reaction(self,
+                               reaction,
+                               message_id):
+
+        del_own_react_task = Task(type = MsgActType.DEL_OWN_REACT,
+                                  content = reaction,
+                                  content_type = ContentType.REACTIONS,
+                                  channel_id = self._channel.id,
+                                  message_id = message_id)
+
+        self._game.order_task_to_msg_dispatcher(del_own_react_task)
+
+
+
     @property
     def id(self):
         result = None

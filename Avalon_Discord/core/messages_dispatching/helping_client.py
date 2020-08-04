@@ -61,7 +61,22 @@ class HelpingClient(discord.Client):
 
                             await self.http.add_reaction(channel_id = task.channel_id, 
                                                          message_id = task.message_id, 
-                                                         emoji = task.content)                            
+                                                         emoji      = task.content)  
+
+                        elif task.type == MsgActType.DEL_REACT:
+                            logging.info('Removing reaction: ' + str(task.content))
+
+                            await self.http.remove_reaction(channel_id = task.channel_id, 
+                                                            message_id = task.message_id, 
+                                                            emoji      = task.content,
+                                                            member_id  = task.member_id)     
+
+                        elif task.type == MsgActType.DEL_OWN_REACT:
+                            logging.info('Removing bot reaction: ' + str(task.content))
+
+                            await self.http.remove_own_reaction(channel_id = task.channel_id, 
+                                                                message_id = task.message_id, 
+                                                                emoji      = task.content)                                                            
     
                         elif task.type == MsgActType.SEND or task.type == MsgActType.EDIT:
                             text  = None

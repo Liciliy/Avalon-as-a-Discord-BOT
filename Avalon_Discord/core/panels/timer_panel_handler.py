@@ -89,5 +89,6 @@ class TimerPanelHandler(AbsGamePanelHandler):
                        + 'Emoji: '      + str(payload.emoji) + '. '
 
         logging.info(str_to_log)
-
+        self.order_del_reaction(payload.emoji, self.id)
         self._content_handler.handle_reaction(str(payload.emoji))
+        
