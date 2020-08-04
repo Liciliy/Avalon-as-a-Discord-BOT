@@ -69,24 +69,8 @@ class TimerPanelHandler(AbsGamePanelHandler):
         else: self._update_and_publish(content)    
 
     async def on_reaction(self, payload):
-        str_to_log = 'Got reaction act: '
-
-        if   payload.event_type == const.REACTION_ADD:
-            str_to_log = str_to_log + const.REACTION_ADD + '. '\
-                       + 'Added by: '   + payload.member.name + '. '\
-                       + 'Message ID: ' + str(payload.message_id) + '. '\
-                       + 'User ID: '    + str(payload.user_id) + '. '\
-                       + 'Channel ID: ' + str(payload.channel_id) + '. '\
-                       + 'Guild ID: '   + str(payload.guild_id) + '. '\
-                       + 'Emoji: '      + str(payload.emoji) + '. '  
-            
-        elif payload.event_type == const.REACTION_REM:
-            str_to_log += const.REACTION_REM + '. '\
-                       + 'Message ID: ' + str(payload.message_id) + '. '\
-                       + 'User ID: '    + str(payload.user_id) + '. '\
-                       + 'Channel ID: ' + str(payload.channel_id) + '. '\
-                       + 'Guild ID: '   + str(payload.guild_id) + '. '\
-                       + 'Emoji: '      + str(payload.emoji) + '. '
+        str_to_log = 'Got reaction act: ' \
+                   + self._get_react_payload_info_as_string(payload) 
 
         logging.info(str_to_log)
         self.order_del_reaction(payload.emoji, self.id)

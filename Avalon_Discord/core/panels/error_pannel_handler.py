@@ -40,30 +40,13 @@ class ErrorPanelHandler(AbsGamePanelHandler):
     
         await self._message.add_reaction(const.RED_CROSS)
 
+    # TODO delete message using task ordering
     async def on_reaction(self, payload):
-        str_to_log = 'Got reaction for an error message. Reaction was: '
+        str_to_log = 'Got reaction for an error message. Reaction was: ' \
+                   + self._get_react_payload_info_as_string(payload) 
         
         if payload.event_type == const.REACTION_ADD\
           and str(payload.emoji) == const.RED_CROSS:
-
-            str_to_log = str_to_log + const.REACTION_ADD + '. '\
-                       + 'Added by: '   + payload.member.name + '. '\
-                       + 'Message ID: ' + str(payload.message_id) + '. '\
-                       + 'User ID: '    + str(payload.user_id) + '. '\
-                       + 'Channel ID: ' + str(payload.channel_id) + '. '\
-                       + 'Guild ID: '   + str(payload.guild_id) + '. '\
-                       + 'Emoji: '      + str(payload.emoji) + '. '  
-
-            logging.debug(str_to_log)
-
             await self.delete()
 
-        elif payload.event_type == const.REACTION_REM:
-            str_to_log += const.REACTION_REM + '. '\
-                       + 'Message ID: ' + str(payload.message_id) + '. '\
-                       + 'User ID: '    + str(payload.user_id) + '. '\
-                       + 'Channel ID: ' + str(payload.channel_id) + '. '\
-                       + 'Guild ID: '   + str(payload.guild_id) + '. '\
-                       + 'Emoji: '      + str(payload.emoji) + '. '
-
-            logging.debug(str_to_log)
+        logging.debug(str_to_log)

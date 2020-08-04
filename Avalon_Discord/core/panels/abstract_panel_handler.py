@@ -46,11 +46,11 @@ class AbsGamePanelHandler:
         logging.critical('Unimplemented method usage!')
         raise NotImplementedMethodUsage('Method name: delete')
 
-    async def on_reaction(self, payload):
-        str_to_log = 'Got un-handled reaction act: '
+    def _get_react_payload_info_as_string(self, payload):
+        result = ''
 
         if   payload.event_type == const.REACTION_ADD:
-            str_to_log = str_to_log + const.REACTION_ADD + '. '\
+            result += const.REACTION_ADD + '. '\
                        + 'Added by: '   + payload.member.name + '. '\
                        + 'Message ID: ' + str(payload.message_id) + '. '\
                        + 'User ID: '    + str(payload.user_id) + '. '\
@@ -59,12 +59,19 @@ class AbsGamePanelHandler:
                        + 'Emoji: '      + str(payload.emoji) + '. '  
             
         elif payload.event_type == const.REACTION_REM:
-            str_to_log += const.REACTION_REM + '. '\
+            result += const.REACTION_REM + '. '\
                        + 'Message ID: ' + str(payload.message_id) + '. '\
                        + 'User ID: '    + str(payload.user_id) + '. '\
                        + 'Channel ID: ' + str(payload.channel_id) + '. '\
                        + 'Guild ID: '   + str(payload.guild_id) + '. '\
                        + 'Emoji: '      + str(payload.emoji) + '. '
+
+        return result
+        
+    # TODO make on_reaction not async: here and in children
+    async def on_reaction(self, payload):
+        str_to_log = 'Got un-handled reaction act: ' \
+                   + self._get_react_payload_info_as_string(payload)        
 
         logging.error(str_to_log)
 
