@@ -18,6 +18,9 @@ from .panels.error_pannel_handler import\
 from .panels.timer_panel_handler import\
     TimerPanelHandler
 
+from .panels.vote_panel_handler import\
+    VotePanelHandler
+
 from .panels.conn_st_panel_handler import\
     ConnectionStatusPanelHandler
 
@@ -33,6 +36,8 @@ class TextChannelHandler:
     _error_pnl_handler = None
     _chat_pnl_handler  = None
     _timer_pnl_handler = None
+    _vote_pnl_handler  = None
+   
 
     _panels_handlers_list = None
     def __init__(self, game, user, role):
@@ -81,11 +86,14 @@ class TextChannelHandler:
              ChatPanelHandler(self._game, self)
         self._timer_pnl_handler =\
              TimerPanelHandler(self._game, self)
+        self._vote_pnl_handler =\
+            VotePanelHandler(self._game, self)
        
 
         self._panels_handlers_list = [self._error_pnl_handler, 
                                       self._chat_pnl_handler,
-                                      self._timer_pnl_handler]
+                                      self._timer_pnl_handler,
+                                      self._vote_pnl_handler]
 
         await self.invite_player()
 
@@ -167,6 +175,10 @@ class TextChannelHandler:
     @property
     def timer_panel(self):
         return self._timer_pnl_handler
+
+    @property
+    def vote_panel(self):
+        return self._vote_pnl_handler
 
 class GameMasterTxtChHandler(TextChannelHandler):
     _connection_info_pnl_handler = None

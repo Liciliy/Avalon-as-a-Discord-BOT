@@ -14,6 +14,12 @@ class PanelContent:
     reactions = None
 
     def __init__(self, text = None, reactions = None):
+        """Creates object to be used for updating/creating game messages.
+
+        Args:
+            text (string, optional): message text. Defaults to None.
+            reactions (list[string], optional): emoji to add. Defaults to None.
+        """
         self.text = text
         self.reactions = reactions
 
@@ -24,12 +30,16 @@ class AbsGamePanelHandler:
     _list_of_messages = None
     _msg_content      = None
     _content_type     = None
+    _content_handler  = None
     
     def __init__(self, game, channel, content_type):
         self._game         = game
         self._channel      = channel
         self._content_type = content_type
         self._list_of_messages = list()
+
+    def set_content_handler(self, content_handler):
+        self._content_handler = content_handler  
 
     def is_pnl_hndlr_msg(self, message_to_check_id):
         result = False
@@ -137,6 +147,14 @@ class AbsGamePanelHandler:
                                   message_id = message_id)
 
         self._game.order_task_to_msg_dispatcher(del_own_react_task)
+
+    def order_remove_all_reactions(self, msg_id):
+        del_all_react_task = Task(type = MsgActType.DEL_ALL_REACT,
+                                  content_type = ContentType.REACTIONS,     
+                                  channel_id = self._channel.id,
+                                  message_id = msg_id)
+
+        self._game.order_task_to_msg_dispatcher(del_all_react_task)
 
     @property
     def id(self):

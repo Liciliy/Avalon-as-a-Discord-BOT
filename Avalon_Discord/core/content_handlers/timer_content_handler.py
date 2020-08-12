@@ -47,7 +47,7 @@ class TimerContentHandler(AbsContentHandler):
     _timer_type              = None
     _time_runs_out           = None
     
-
+    # TODO use master player ID isntad of channel ID
     def __init__(self, 
                  game, 
                  channels_handlers,

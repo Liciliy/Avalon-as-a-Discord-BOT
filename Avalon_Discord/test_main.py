@@ -132,6 +132,15 @@ async def on_message(message):
         invite = await channel.create_invite()
 
         await message.channel.send(invite)
+    
+    if message.content.startswith('emt'):
+        msg = await message.channel.send('Lol a message')
+
+        MISSION_SUCCESS_EMOJI = '✅'
+        await message.channel.send(MISSION_SUCCESS_EMOJI)
+        await asyncio.sleep(3)
+
+        await msg.edit(content = '')
 
 
 client.run('NzA2ODYwNDQ1MTU1NDU5MDgz.XrAajQ.M19zJPXV-DhdObx7MgWaSw-zdL4')

@@ -31,7 +31,8 @@ class HelpingClient(discord.Client):
         self._client_ready = True
 
     async def check_queue_and_execute_tasks(self):
-        logging.info('In task polling function. Waiting until client is ready...')
+        logging.info(
+            'In task polling function. Waiting until client is ready...')
 
         while not self._client_ready:
             await asyncio.sleep(0.05)
@@ -57,28 +58,43 @@ class HelpingClient(discord.Client):
                                 task.message_id)
 
                         elif task.type == MsgActType.ADD_REACT:
-                            logging.info('Adding reaction: ' + str(task.content))
+                            logging.info('Adding reaction: ' 
+                                         + str(task.content))
 
-                            await self.http.add_reaction(channel_id = task.channel_id, 
-                                                         message_id = task.message_id, 
-                                                         emoji      = task.content)  
+                            await self.http.add_reaction(
+                                channel_id = task.channel_id,
+                                message_id = task.message_id,
+                                emoji      = task.content)  
 
                         elif task.type == MsgActType.DEL_REACT:
-                            logging.info('Removing reaction: ' + str(task.content))
+                            logging.info('Removing reaction: ' 
+                                         + str(task.content))
 
-                            await self.http.remove_reaction(channel_id = task.channel_id, 
-                                                            message_id = task.message_id, 
-                                                            emoji      = task.content,
-                                                            member_id  = task.member_id)     
+                            await self.http.remove_reaction(
+                                channel_id = task.channel_id, 
+                                message_id = task.message_id,
+                                emoji      = task.content,
+                                member_id  = task.member_id)     
 
                         elif task.type == MsgActType.DEL_OWN_REACT:
-                            logging.info('Removing bot reaction: ' + str(task.content))
+                            logging.info('Removing bot reaction: ' 
+                                         + str(task.content))
 
-                            await self.http.remove_own_reaction(channel_id = task.channel_id, 
-                                                                message_id = task.message_id, 
-                                                                emoji      = task.content)                                                            
-    
-                        elif task.type == MsgActType.SEND or task.type == MsgActType.EDIT:
+                            await self.http.remove_own_reaction(
+                                channel_id = task.channel_id, 
+                                message_id = task.message_id, 
+                                emoji      = task.content)                                                            
+          
+                        elif task.type == MsgActType.DEL_ALL_REACT:
+                            logging.info('Removing all reactions: ' 
+                                         + str(task.content))
+
+                            await self.http.clear_reactions(
+                                channel_id = task.channel_id, 
+                                message_id = task.message_id)   
+
+                        elif task.type == MsgActType.SEND \
+                          or task.type == MsgActType.EDIT:
                             text  = None
                             embed = None
     
@@ -95,7 +111,8 @@ class HelpingClient(discord.Client):
                                 logging.info('Message type is Text.')
                                 text = task.content
                             else:
-                                # TODO think about processing an error somehow here.
+                                # TODO think about processing an error somehow
+                                # here.
                                 logging.error('Wrong content type received: ' 
                                                + str(task.content_type))
     
@@ -109,17 +126,20 @@ class HelpingClient(discord.Client):
                                     task.channel_id, 
                                     content = text, 
                                     embed = embed)
-
                                 
                                 logging.info('Msg sent.')
     
                             else:
                                 logging.info('Editing a message.')
                                 fields = dict()
-                                if text  != None: fields['content'] = str(text)
-                                if embed != None: fields['embed']   = embed.to_dict()
+                                if text  != None: 
+                                    fields['content'] = str(text)
+                                if embed != None: 
+                                    fields['embed'] = embed.to_dict()
     
-                                await self.http.edit_message(task.channel_id, task.message_id, **fields)
+                                await self.http.edit_message(task.channel_id, 
+                                                             task.message_id, 
+                                                             **fields)
                     
                         else:
                             # TODO think about processing an error somehow here.

@@ -20,6 +20,7 @@ class MsgActType:
     ADD_REACT = 3
     DEL_REACT = 4
     DEL_OWN_REACT = 5
+    DEL_ALL_REACT = 6
 
     STR_REPR = {
         SEND          : 'SEND_MSG',
@@ -28,8 +29,8 @@ class MsgActType:
         ADD_REACT     : 'ADD_REACT',
         DEL_REACT     : 'DEL_REACT',
         DEL_OWN_REACT : 'DEL_OWN_REACT',
+        DEL_ALL_REACT : 'DEL_ALL_REACT',
     }
-
 
 
 class Task:

@@ -24,6 +24,11 @@ from .content_handlers.game_chat_handler import\
 from .content_handlers.timer_content_handler import\
     TimerContentHandler
 
+from .content_handlers.vote_content_handler import\
+    VoteContentHandler,\
+    VoteOptions,\
+    VoteType
+
 from .emoji_handler import\
     EmojiHandler
 
@@ -64,6 +69,7 @@ class AvaGame:
 
     # Game contents handlers
     _timer_content_handler = None
+    _vote_content_handler = None
 
     _phase = None
 
@@ -153,7 +159,11 @@ class AvaGame:
         for txt_ch_handler in self.player_id_to_txt_ch_handler_dict.values():
             await txt_ch_handler.create_channel_and_invite_player()
         
+        self.player_id_to_emoji_dict = \
+            await EmojiHandler.create_emojies_for_game(self) 
+
         await self._publish_chat()
+
         self._timer_content_handler =\
             TimerContentHandler(
                 self, 
@@ -162,7 +172,6 @@ class AvaGame:
         await self._timer_content_handler.initial_render()
 
         # TODO test code below. Remove later:
-
 
         master_ch_id = self.player_id_to_txt_ch_handler_dict[self.game_master_id].id
         
@@ -173,17 +182,43 @@ class AvaGame:
                 break
 
         await self._timer_content_handler.start_timer(0, 60, 'Алісія вікандер', talker_id)
+
         # ================ End test code ================ 
               
-    async def start_game(self, msg):    
+    async def start_game(self, msg):  
+      
+        self.game_state = const.GAME_STARTED_STATE
 
         self.player_id_to_emoji_dict = \
-            await EmojiHandler.create_emojies_for_game(self) 
-      
-        self.game_state = const.GAME_STARTED_STATE 
+            await EmojiHandler.create_emojies_for_game(self)  
 
         for ch in self.player_id_to_txt_ch_handler_dict.values():
-            await ch.send(lang.GAME_MSG_STARTING)    
+            await ch.send(lang.GAME_MSG_STARTING)   
+
+        self._vote_content_handler =\
+            VoteContentHandler(
+                self, 
+                self.player_id_to_txt_ch_handler_dict.values(),
+                self.player_id_to_txt_ch_handler_dict[self.game_master_id].id)
+        await self._vote_content_handler.initial_render() 
+       
+        # TODO test code below. Remove later:
+        vpids_to_vote_opts = dict()
+        vpids_to_vote_opts[self.players_ids_list[0]] = VoteOptions.YES_AND_NO
+        vpids_to_vote_opts[self.players_ids_list[1]] = VoteOptions.ONLY_YES
+
+
+        party_emojies = list()
+        for _, em in self.player_id_to_emoji_dict.items():
+            party_emojies.append(str(em))
+
+        self._vote_content_handler.initiate_vote(
+                          2, 
+                          vpids_to_vote_opts, 
+                          VoteType.MISSION_RESULT,
+                          party_emojies,
+                          1)
+        # ================ End test code ================
 
         await msg.delete()      
      

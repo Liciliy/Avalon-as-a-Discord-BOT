@@ -12,19 +12,10 @@ from .abstract_panel_handler import\
 from ..content_handlers.timer_content_handler import\
     TimerContentHandler
    
-class TimerPanelHandler(AbsGamePanelHandler):
-
-    TIME_KEY      = 'time'
-    TEXT_KEY      = 'text'
-    REACTIONS_KEY = 'reactions'
-
-    _content_handler = None
+class TimerPanelHandler(AbsGamePanelHandler):    
 
     def __init__(self, game, channel):
-        super().__init__(game, channel, ContentType.TEXT)
-
-    def set_content_handler(self, content_handler):
-        self._content_handler = content_handler                
+        super().__init__(game, channel, ContentType.TEXT)                  
 
     async def _create_and_publish(self, content):
         self._message = await self._channel.send(content = content)
@@ -75,4 +66,3 @@ class TimerPanelHandler(AbsGamePanelHandler):
         logging.info(str_to_log)
         self.order_del_reaction(payload.emoji, self.id)
         self._content_handler.handle_reaction(str(payload.emoji))
-        
