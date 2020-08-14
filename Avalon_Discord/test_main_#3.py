@@ -77,7 +77,7 @@ class PanelContentHdlrTester:
 
         await asyncio.gather(*tasks)       
 
-    async def timer_expired(self):
+    async def notify_game_timer_expired(self):
         pass
 
     async def start_timer(self):

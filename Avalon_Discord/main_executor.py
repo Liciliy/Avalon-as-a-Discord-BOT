@@ -141,7 +141,17 @@ async def on_raw_reaction_add(payload):
     if not READY:                         return
     if payload.user_id == client.user.id: return
 
-    logging.info('Got reaction added/removed event')
-    await GameManager.handle_reaction_added_event(payload)
+    logging.info('Got reaction added event')
+    await GameManager.handle_user_reaction_event(payload)
+
+@client.event
+async def on_raw_reaction_remove(payload):
+    global READY
+
+    if not READY:                         return
+    if payload.user_id == client.user.id: return
+
+    logging.info('Got reaction removed event')
+    await GameManager.handle_user_reaction_event(payload)
 
 client.run(client_token)

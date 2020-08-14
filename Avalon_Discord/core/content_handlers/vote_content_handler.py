@@ -50,8 +50,7 @@ class VoteContentHandler(AbsContentHandler):
         # === Here relation between CH ID and emoji is set. =================== 
         self._ch_id_to_player_emoji = dict()
         for pid, ch_handler in game.player_id_to_txt_ch_handler_dict.items():
-            print(game.player_id_to_emoji_dict)
-            print(type(game.player_id_to_emoji_dict[pid]))
+
             player_emoji = game.player_id_to_emoji_dict[pid]
             
             self._ch_id_to_player_emoji[ch_handler.id] = str(player_emoji)
@@ -280,7 +279,7 @@ class VoteContentHandler(AbsContentHandler):
 
         await asyncio.sleep(VoteContentHandler.RESULTS_DISPLAY_TIME)
 
-        self.vote_is_done()
+        self.notify_game_vote_is_done()
 
     def _mission_result_vote_panels_update(self):    
 
@@ -345,7 +344,7 @@ class VoteContentHandler(AbsContentHandler):
 
         await asyncio.sleep(VoteContentHandler.RESULTS_DISPLAY_TIME)
 
-        self.vote_is_done()
+        self.notify_game_vote_is_done()
 
     def _merlin_hunt_vote_panels_update(self):
         # In party forming vote there is only one person who can vote - party 
@@ -410,7 +409,7 @@ class VoteContentHandler(AbsContentHandler):
 
         await asyncio.sleep(VoteContentHandler.RESULTS_DISPLAY_TIME)
 
-        self.vote_is_done()
+        self.notify_game_vote_is_done()
 
     def update_vote_pannels(self, party_emojies_list = None):
         """Leads to vote panels re-render attempt.
@@ -455,7 +454,7 @@ class VoteContentHandler(AbsContentHandler):
             elif vote_type == VoteType.PARTY_FORMING:
                 # TODO Here check if number of selected players is equal to 
                 # number of needed players. If not - dont end vote. 
-                self.vote_is_done()
+                self.notify_game_vote_is_done()
             
             elif vote_type == VoteType.MISSION_RESULT:
                 await self._display_mission_results()
@@ -466,7 +465,7 @@ class VoteContentHandler(AbsContentHandler):
         else:
             self.update_vote_pannels()
 
-    def vote_is_done(self):
+    def notify_game_vote_is_done(self):
         # TODO here notify game phase about vote results.
         print ('!!! VOTE IS DONE!!! Here the game should be notified')
         pass
@@ -537,6 +536,9 @@ class Vote:
 
     def set_party_players_emojies(self, ems):
         self.selected_players_num = len(ems) 
+        for em in ems:
+            em = em.replace('<', '').replace('>', '')
+
         self._party_emojies_str = ' '.join(ems)
 
     def set_vote_started(self):

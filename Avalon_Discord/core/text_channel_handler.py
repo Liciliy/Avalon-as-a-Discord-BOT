@@ -24,6 +24,9 @@ from .panels.vote_panel_handler import\
 from .panels.conn_st_panel_handler import\
     ConnectionStatusPanelHandler
 
+from .panels.selection_panel_handler import\
+    SelectionPanelHandler
+
 from .messages_dispatching.task import Task, ContentType, MsgActType
 
 class TextChannelHandler:
@@ -37,6 +40,7 @@ class TextChannelHandler:
     _chat_pnl_handler  = None
     _timer_pnl_handler = None
     _vote_pnl_handler  = None
+    _selection_pnl_handler = None
    
 
     _panels_handlers_list = None
@@ -88,12 +92,15 @@ class TextChannelHandler:
              TimerPanelHandler(self._game, self)
         self._vote_pnl_handler =\
             VotePanelHandler(self._game, self)
+        self._selection_pnl_handler =\
+            SelectionPanelHandler(self._game, self)
        
 
         self._panels_handlers_list = [self._error_pnl_handler, 
                                       self._chat_pnl_handler,
                                       self._timer_pnl_handler,
-                                      self._vote_pnl_handler]
+                                      self._vote_pnl_handler,
+                                      self._selection_pnl_handler]
 
         await self.invite_player()
 
@@ -179,6 +186,10 @@ class TextChannelHandler:
     @property
     def vote_panel(self):
         return self._vote_pnl_handler
+
+    @property
+    def selection_panel(self):
+        return self._selection_pnl_handler
 
 class GameMasterTxtChHandler(TextChannelHandler):
     _connection_info_pnl_handler = None

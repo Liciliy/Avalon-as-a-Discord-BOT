@@ -14,6 +14,7 @@ class TimerType:
     BALAGAN_TIMER          = 2
     MERLIN_HUNT_TALK_TIMER = 3
 
+
 class TimerContentHandler(AbsContentHandler):
     TIMER_RUNS_OUT_THR_SEC = 15
     YOU_ARE_TALKING   = lang.TIMER_YOU_ARE_TALKING
@@ -244,7 +245,7 @@ class TimerContentHandler(AbsContentHandler):
                     + TimerContentHandler.LESS_THAN_X_LEFT
             pannel_hdlr.update_and_publish(content)
 
-    def timer_expired(self):
+    def notify_game_timer_expired(self):
         logging.info('Timer notified about its expiration.')
         if self._timer_type == TimerType.TALKING_TIMER:
 
@@ -444,7 +445,7 @@ class Timer:
             self._curr_segment_lifetime += Timer.TIMER_SLEEP_TIME_S
     
         logging.info('Timer loop ended. Notifying timer content handler.') 
-        self._timer_content_handler.timer_expired()
+        self._timer_content_handler.notify_game_timer_expired()
             
     @staticmethod
     def _get_start_time_segments():

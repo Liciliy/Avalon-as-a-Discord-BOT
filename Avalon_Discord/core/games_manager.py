@@ -482,7 +482,7 @@ class GameManager:
                     break
 
     @staticmethod
-    async def handle_reaction_added_event(payload):
+    async def handle_user_reaction_event(payload):
 
         guild_id = payload.guild_id
         user_id  = payload.user_id
@@ -493,5 +493,5 @@ class GameManager:
 
                 if game.game_hosting_guild_id == guild_id \
                   and user_id in game.players_ids_list:
-                    await game.handle_player_add_reaction(user_id, payload)
+                    await game.handle_player_reaction(user_id, payload)
                     break

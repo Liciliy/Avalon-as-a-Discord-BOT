@@ -7,6 +7,8 @@ from ..vote_content_handler import VoteContentHandler,\
                                    VoteOptions,\
                                    MessageType
 
+from .common import TestReactionPayload, TestGame, TestChannelHandler
+
 #from content_handlers.vote_content_handler import\
 #    VoteContentHandler,\
 #    Vote,\
@@ -25,33 +27,7 @@ VOTE_PANEL = """
 #====================================================================
 """
 
-class TestReactionPayload:
-    emoji      = None
-    channel_id = None
-
-    def __init__(self, em, chid):
-        self.emoji = em
-        self.channel_id = chid
-
-class TestGame:
-    player_id_to_txt_ch_handler_dict = None
-    player_id_to_emoji_dict          = None
-    
-    def __init__(self, pid_to_txt_ch_hd_dict, pid_to_emoji):
-        self.player_id_to_txt_ch_handler_dict = pid_to_txt_ch_hd_dict
-        self.player_id_to_emoji_dict          = pid_to_emoji
-
-
-class TestChannelHandler:
-    vote_panel = None
-    id = None
-
-    def __init__(self, vph, id):
-        self.vote_panel = vph
-        self.id = id
-
-
-class TestPanelHandler:
+class TestVopePanelHandler:
     name = None
     _msg_content = None
     channel_id = None
@@ -116,14 +92,14 @@ class TestPanelHandler:
 
 def init_vch_with_mock_data():
 
-    ch_h_1 = TestChannelHandler(TestPanelHandler('VPH#_1', 1), id = 1)
-    ch_h_2 = TestChannelHandler(TestPanelHandler('VPH#_2', 2), id = 2)
-    ch_h_3 = TestChannelHandler(TestPanelHandler('VPH#_3', 3), id = 3)
-    ch_h_4 = TestChannelHandler(TestPanelHandler('VPH#_4', 4), id = 4)
-    ch_h_5 = TestChannelHandler(TestPanelHandler('VPH#_5', 5), id = 5)
-    ch_h_6 = TestChannelHandler(TestPanelHandler('VPH#_6', 6), id = 6)
-    ch_h_7 = TestChannelHandler(TestPanelHandler('VPH#_7', 7), id = 7)
-    ch_h_8 = TestChannelHandler(TestPanelHandler('VPH#_8', 8), id = 8)
+    ch_h_1 = TestChannelHandler(id = 1, vph = TestVopePanelHandler('VPH#_1', 1))
+    ch_h_2 = TestChannelHandler(id = 2, vph = TestVopePanelHandler('VPH#_2', 2))
+    ch_h_3 = TestChannelHandler(id = 3, vph = TestVopePanelHandler('VPH#_3', 3))
+    ch_h_4 = TestChannelHandler(id = 4, vph = TestVopePanelHandler('VPH#_4', 4))
+    ch_h_5 = TestChannelHandler(id = 5, vph = TestVopePanelHandler('VPH#_5', 5))
+    ch_h_6 = TestChannelHandler(id = 6, vph = TestVopePanelHandler('VPH#_6', 6))
+    ch_h_7 = TestChannelHandler(id = 7, vph = TestVopePanelHandler('VPH#_7', 7))
+    ch_h_8 = TestChannelHandler(id = 8, vph = TestVopePanelHandler('VPH#_8', 8))
 
     os.environ['TEST'] = 'YES'
 
@@ -165,6 +141,7 @@ def init_vch_with_mock_data():
     return vch
 
 async def tc1():
+    print ('*************** Executing TC 1 ********')
 
     vch = init_vch_with_mock_data()
 
@@ -213,6 +190,9 @@ async def tc1():
 
 
 async def tc2():
+    print ('*************** Executing TC 2 ********')
+
+
     vch = init_vch_with_mock_data()
 
     await vch.initial_render() 
@@ -239,6 +219,8 @@ async def tc2():
     await vch.handle_reaction(TestReactionPayload(VoteContentHandler.YES_VOTE, 7))
     
 async def tc3():
+    print ('*************** Executing TC 3 ********')
+
     vch = init_vch_with_mock_data()
 
     await vch.initial_render() 
@@ -262,6 +244,8 @@ async def tc3():
     
 
 async def tc4():
+    print ('*************** Executing TC 4 ********')
+
     vch = init_vch_with_mock_data()
 
     await vch.initial_render() 

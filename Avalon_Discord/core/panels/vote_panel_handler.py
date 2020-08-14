@@ -5,6 +5,8 @@ from .abstract_panel_handler import\
     ContentType,\
     PanelContent
 
+import core.panels.constants_game_panel_handler as const
+
 class MessageType:
     TEXT_MSG  = 0
     EMOJI_MSG = 1
@@ -92,10 +94,14 @@ class VotePanelHandler(AbsGamePanelHandler):
             self.publish(content)
 
     async def on_reaction(self, payload):
+        # TODO dont react on reaction removal.
         str_to_log = 'Got reaction act: ' \
-                   + self._get_react_payload_info_as_string(payload) 
-
+                   + self._get_react_payload_info_as_string(payload)    
         logging.info(str_to_log)
+
+        if payload.event_type == const.REACTION_REM:
+            return
+
         self.order_remove_all_reactions(self._emoji_message.id)
         await self._content_handler.handle_reaction(payload)
 

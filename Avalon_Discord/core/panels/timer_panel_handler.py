@@ -59,10 +59,18 @@ class TimerPanelHandler(AbsGamePanelHandler):
             await self._create_and_publish(content)
         else: self._update_and_publish(content)    
 
+    # TODO looks like below function has no need in being async.
+    # Or, maybe, since it is an interface funct - it should be...
+    # Need to investigate - check all on_reaction functions.
     async def on_reaction(self, payload):
+        # TODO dont react on reaction removal.
         str_to_log = 'Got reaction act: ' \
                    + self._get_react_payload_info_as_string(payload) 
 
         logging.info(str_to_log)
+
+        if payload.event_type == const.REACTION_REM:
+            return
+
         self.order_del_reaction(payload.emoji, self.id)
         self._content_handler.handle_reaction(str(payload.emoji))

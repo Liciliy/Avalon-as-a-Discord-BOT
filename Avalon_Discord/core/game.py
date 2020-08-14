@@ -29,6 +29,10 @@ from .content_handlers.vote_content_handler import\
     VoteOptions,\
     VoteType
 
+from .content_handlers.selection_content_handler import\
+    SelectionContentHandler,\
+    SelectionType
+
 from .emoji_handler import\
     EmojiHandler
 
@@ -68,8 +72,9 @@ class AvaGame:
     _chat_handler  = None
 
     # Game contents handlers
-    _timer_content_handler = None
-    _vote_content_handler = None
+    _timer_content_handler     = None
+    _vote_content_handler      = None
+    _selection_content_handler = None
 
     _phase = None
 
@@ -203,25 +208,50 @@ class AvaGame:
         await self._vote_content_handler.initial_render() 
        
         # TODO test code below. Remove later:
+
+        # === Reactions ===
+        self._selection_content_handler =\
+            SelectionContentHandler(
+                self,
+                self.player_id_to_txt_ch_handler_dict.values(),
+                self.player_id_to_txt_ch_handler_dict[self.game_master_id].id)
+        await self._selection_content_handler.initial_render() 
+
+        name = self.player_id_to_name_dict[self.players_ids_list[0]]
+
+        self._selection_content_handler.initiate_selection(
+                          SelectionType.PARTY, 
+                          self.players_ids_list[0], 
+                          name)
+        # =================
         vpids_to_vote_opts = dict()
-        vpids_to_vote_opts[self.players_ids_list[0]] = VoteOptions.YES_AND_NO
-        vpids_to_vote_opts[self.players_ids_list[1]] = VoteOptions.ONLY_YES
+        vpids_to_vote_opts[self.players_ids_list[0]] = VoteOptions.ONLY_YES
 
 
         party_emojies = list()
         for _, em in self.player_id_to_emoji_dict.items():
             party_emojies.append(str(em))
+           
 
         self._vote_content_handler.initiate_vote(
                           2, 
                           vpids_to_vote_opts, 
-                          VoteType.MISSION_RESULT,
-                          party_emojies,
-                          1)
+                          VoteType.PARTY_FORMING)
+        self._vote_content_handler.start_vote()              
         # ================ End test code ================
 
         await msg.delete()      
      
+    def timer_expired(self):
+        pass
+
+    def vote_is_done(self, content):
+        pass
+
+    def selection_happen(self, content):
+        self._vote_content_handler.update_vote_pannels(content)
+
+
     async def display_error_msg(self, msg, error_to_display):
         player_chanel = self.player_id_to_txt_ch_handler_dict[msg.author.id]
         await player_chanel.display_error_msg(error_to_display)
@@ -316,7 +346,7 @@ class AvaGame:
 
         await self._publish_chat()
 
-    async def handle_player_add_reaction(self, player_id, payload):
+    async def handle_player_reaction(self, player_id, payload):
         await self.player_id_to_txt_ch_handler_dict[player_id].\
             react_on_reaction(payload)
 
