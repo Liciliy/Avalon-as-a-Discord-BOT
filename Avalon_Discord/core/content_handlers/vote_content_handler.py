@@ -27,7 +27,7 @@ class VoteOptions:
 class VoteContentHandler(AbsContentHandler):
     NO_VOTE     = '❌'
     YES_VOTE    = '✅'
-    EMPTY_EMOJI = '✖️'
+    EMPTY_VOTE  = '        *******' 
     RESULTS_DISPLAY_TIME = 3
     MISSION_FAILURE_EMOJI = '❌'
     MISSION_SUCCESS_EMOJI = '✅'
@@ -62,9 +62,9 @@ class VoteContentHandler(AbsContentHandler):
     async def initial_render(self):
 
         content = {
-                MessageType.TEXT_MSG  : VoteContentHandler.EMPTY_EMOJI * 5,
+                MessageType.TEXT_MSG  : VoteContentHandler.EMPTY_VOTE,
                 MessageType.EMOJI_MSG : 
-                  PanelContent(VoteContentHandler.EMPTY_EMOJI * 5, None)
+                  PanelContent(VoteContentHandler.EMPTY_VOTE, None)
             }
         for pannel_hdlr in self._panels_handlers:
             pannel_hdlr.set_content_handler(self)            
@@ -134,7 +134,7 @@ class VoteContentHandler(AbsContentHandler):
         
         party_emoji_str = self._vote.party_str
         if party_emoji_str == '':
-            party_emoji_str = VoteContentHandler.EMPTY_EMOJI * 5
+            party_emoji_str = VoteContentHandler.EMPTY_VOTE
 
         for p_hdlr in self._panels_handlers:
 
@@ -153,7 +153,10 @@ class VoteContentHandler(AbsContentHandler):
 
                 # Below 'if' handles case when needed number of players were
                 # added to the party. 
-                if sel_players == need_players:                    
+                if sel_players == need_players: 
+                    logging.info(
+                        f'Number of needed players equeal {need_players} ' + 
+                        f'to number of selected players {sel_players}.')                   
 
                     if self._vote.vote_started:
                         content[MessageType.TEXT_MSG] =\

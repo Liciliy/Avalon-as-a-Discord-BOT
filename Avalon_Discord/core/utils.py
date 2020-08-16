@@ -19,7 +19,7 @@ class EmbedField():
     val    = None
     inline = None
 
-    def __init__(self, name, val, inline):
+    def __init__(self, name, val, inline = False):
         self.name   = name 
         self.val    = val 
         self.inline = inline 

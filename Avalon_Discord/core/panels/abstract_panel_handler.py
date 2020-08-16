@@ -102,11 +102,18 @@ class AbsGamePanelHandler:
 
     def order_edit_task(self, 
                         new_content, 
-                        message_id):
+                        message_id,
+                        content_type = None):
+
+        type_to_use = None
+        if content_type == None:
+            type_to_use = self._content_type
+        else:
+            type_to_use = content_type
 
         edit_task = Task(type = MsgActType.EDIT,
                          content = new_content,
-                         content_type = self._content_type,
+                         content_type = type_to_use,
                          channel_id = self._channel.id,
                          message_id = message_id)
 

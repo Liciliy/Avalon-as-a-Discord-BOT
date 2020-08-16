@@ -27,6 +27,9 @@ from .panels.conn_st_panel_handler import\
 from .panels.selection_panel_handler import\
     SelectionPanelHandler
 
+from .panels.secret_info_panel_handler import\
+    SecretInfoPanelHandler
+
 from .messages_dispatching.task import Task, ContentType, MsgActType
 
 class TextChannelHandler:
@@ -41,6 +44,9 @@ class TextChannelHandler:
     _timer_pnl_handler = None
     _vote_pnl_handler  = None
     _selection_pnl_handler = None
+    _secret_info_pnl_handler = None
+    
+    _pre_game_messages = None      
    
 
     _panels_handlers_list = None
@@ -55,6 +61,19 @@ class TextChannelHandler:
         self._game         = game
         self._user         = user
         self._user_role    = role
+
+        self._pre_game_messages = list()
+
+    async def send_pregame_msg(self, content):
+        self._pre_game_messages.append(
+            await self.send(content)
+        )
+        
+    async def clear_pre_game_messages(self):
+        for msg in self._pre_game_messages:
+            await msg.delete()
+        
+        self._pre_game_messages.clear()
 
     async def create_channel_and_invite_player(self):
         game_guild = self._game.game_hosting_guild
@@ -94,13 +113,16 @@ class TextChannelHandler:
             VotePanelHandler(self._game, self)
         self._selection_pnl_handler =\
             SelectionPanelHandler(self._game, self)
+        self._secret_info_pnl_handler =\
+            SecretInfoPanelHandler(self._game, self)
        
-
+        # TODO reorder pannels as they should be visioble to players.
         self._panels_handlers_list = [self._error_pnl_handler, 
                                       self._chat_pnl_handler,
                                       self._timer_pnl_handler,
                                       self._vote_pnl_handler,
-                                      self._selection_pnl_handler]
+                                      self._selection_pnl_handler,
+                                      self._secret_info_pnl_handler]
 
         await self.invite_player()
 
@@ -190,6 +212,10 @@ class TextChannelHandler:
     @property
     def selection_panel(self):
         return self._selection_pnl_handler
+
+    @property
+    def secret_info_panel(self):
+        return self._secret_info_pnl_handler
 
 class GameMasterTxtChHandler(TextChannelHandler):
     _connection_info_pnl_handler = None

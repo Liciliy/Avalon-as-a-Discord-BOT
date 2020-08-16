@@ -33,10 +33,18 @@ from .content_handlers.selection_content_handler import\
     SelectionContentHandler,\
     SelectionType
 
+from .content_handlers.secret_info_content_handler import\
+    SecretInfoContentHandler
+
 from .emoji_handler import\
     EmojiHandler
 
+from .mechanics.mechanics import NumbersAndRolesHandler
+
 class AvaGame:
+
+    # ==== Fields with simple data ========================================== #
+
     # Unique per guild
     game_id                      = None    
     guild_id                     = None
@@ -45,10 +53,13 @@ class AvaGame:
     game_master_id               = None
     
     # list of discord userds IDs
-    players_ids_list             = None
+    players_ids_list = None
     
     player_id_to_txt_ch_handler_dict = None
     player_id_to_role_dict           = None
+    player_id_to_name_dict           = None
+    player_id_to_guild_member_dict   = None
+    player_id_to_emoji_dict          = None
     
     # INITIATED -> LOCKED -> STARTED -> PAUSED -> ENDED
     game_state                   = None
@@ -56,12 +67,10 @@ class AvaGame:
     # ID of the channel were game was initiated.
     # Should be used for joining the game.
     initial_text_channel_id        = None
-
-    player_id_to_name_dict         = None
-
-    player_id_to_guild_member_dict = None
-
-    player_id_to_emoji_dict   = None
+  
+    # ======================================================================= #
+   
+    # ==== Fields with helping classes ====================================== #
 
     bot_client_link = None
 
@@ -72,13 +81,18 @@ class AvaGame:
     _chat_handler  = None
 
     # Game contents handlers
-    _timer_content_handler     = None
-    _vote_content_handler      = None
-    _selection_content_handler = None
+    _timer_content_handler       = None
+    _vote_content_handler        = None
+    _selection_content_handler   = None
+    _secret_info_content_handler = None
 
     _phase = None
 
     _messages_dispatcher = None
+    _numbers_and_roles_handler = None
+
+    # ======================================================================= #
+
     
     def __init__(self, 
                  game_id, 
@@ -192,14 +206,22 @@ class AvaGame:
               
     async def start_game(self, msg):  
       
-        self.game_state = const.GAME_STARTED_STATE
+        self.game_state = const.GAME_STARTED_STATE 
 
         self.player_id_to_emoji_dict = \
             await EmojiHandler.create_emojies_for_game(self)  
 
-        for ch in self.player_id_to_txt_ch_handler_dict.values():
-            await ch.send(lang.GAME_MSG_STARTING)   
+        for _, txt_ch in self.player_id_to_txt_ch_handler_dict.items():
+            await txt_ch.clear_pre_game_messages()
 
+
+        # === Setting up roles ============================================== #
+        self._numbers_and_roles_handler = NumbersAndRolesHandler(self)
+        self.player_id_to_role_dict =\
+            self._numbers_and_roles_handler.player_ids_to_roles
+        # =================================================================== #
+        
+        # TODO test code below. Remove later:
         self._vote_content_handler =\
             VoteContentHandler(
                 self, 
@@ -207,9 +229,7 @@ class AvaGame:
                 self.player_id_to_txt_ch_handler_dict[self.game_master_id].id)
         await self._vote_content_handler.initial_render() 
        
-        # TODO test code below. Remove later:
-
-        # === Reactions ===
+       # === Reactions ===
         self._selection_content_handler =\
             SelectionContentHandler(
                 self,
@@ -223,6 +243,15 @@ class AvaGame:
                           SelectionType.PARTY, 
                           self.players_ids_list[0], 
                           name)
+
+        self._secret_info_content_handler = \
+            SecretInfoContentHandler(
+                self,
+                self.player_id_to_txt_ch_handler_dict.values(),
+                self.player_id_to_txt_ch_handler_dict[self.game_master_id].id)
+        await self._secret_info_content_handler.initial_render() 
+
+        
         # =================
         vpids_to_vote_opts = dict()
         vpids_to_vote_opts[self.players_ids_list[0]] = VoteOptions.ONLY_YES
@@ -308,9 +337,10 @@ class AvaGame:
             # Assigning role to the player
             await member.add_roles(self.player_id_to_role_dict[member.id])
 
-            await member_channel.send(lang.GAME_MSG_WAITING_ALL)
+            await member_channel.send_pregame_msg(lang.GAME_MSG_WAITING_ALL)
 
-            await member_channel.send(self._voice_handler.get_voice_ch_invite)
+            await member_channel.send_pregame_msg(
+                self._voice_handler.get_voice_ch_invite)
 
             await self.__notify_game_master_about_join_status()
 
@@ -413,4 +443,4 @@ class AvaGame:
     
     @property
     def number_of_players(self):
-        return len(self.players_ids_list)
+        return len(self.players_ids_list) 
