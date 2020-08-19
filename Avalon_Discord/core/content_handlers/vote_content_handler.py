@@ -159,14 +159,23 @@ class VoteContentHandler(AbsContentHandler):
                         f'to number of selected players {sel_players}.')                   
 
                     if self._vote.vote_started:
+                        
                         content[MessageType.TEXT_MSG] =\
                             lang.VOTE_LEADER_SELECT_PLAYERS_RDY.format(
                                sel  = str(self._vote.selected_players_num),
                                need = str(self._vote.num_of_players_to_select))
 
+                        # TODO below check doesnt work. There was a situation 
+                        # when sel_players == need_players but no reaction was 
+                        # added. NOTE: INVESTIGATE AND FIX!!!
                         if not self._vote.reactions_added:
+                            logging.info(
+                                'Vote reaction was NOT added before. Adding...')
                             reaction = [VoteContentHandler.YES_VOTE]
                             self._vote.reactions_added = True
+                        else:
+                            logging.info(
+                                'Vote reaction was added before. Quiting...')
                     
                     else:
                         content[MessageType.TEXT_MSG] =\
@@ -177,7 +186,9 @@ class VoteContentHandler(AbsContentHandler):
                 # Below else handles case when leader hasn't selected needed 
                 # number of players to the party. 
                 else:
-                    if self._vote.reactions_added: p_hdlr.clear_reactions()
+                    if self._vote.reactions_added: 
+                        p_hdlr.clear_reactions()
+                        self._vote.reactions_added = False
 
                     if sel_players > need_players:
                         content[MessageType.TEXT_MSG] =\

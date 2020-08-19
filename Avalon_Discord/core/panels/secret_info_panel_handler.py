@@ -23,7 +23,6 @@ class SecretInfoPanelHandler(AbsGamePanelHandler):
         super().__init__(game, channel, ContentType.TEXT)
 
     async def publish(self, content = None): 
-        self._secret_info = content
         if self._message == None:
             await self._create_and_publish(content)
         else: self._update_and_publish(content)   
@@ -33,9 +32,12 @@ class SecretInfoPanelHandler(AbsGamePanelHandler):
         self._msg_content = content
         self.order_add_reaction(SecretInfoPanelHandler.VISIBILITY_REACTION,
                                 self._message.id)
-        self._info_is_hidden = False
+        
+    def update_and_publish(self, content, initial_update = False): 
+        if initial_update:
+            self._secret_info    = content
+            self._info_is_hidden = False
 
-    def update_and_publish(self, content): 
         if type(content) == str:
             self.order_edit_task(content, self._message.id, ContentType.TEXT)
         else:
@@ -51,10 +53,15 @@ class SecretInfoPanelHandler(AbsGamePanelHandler):
                    + self._get_react_payload_info_as_string(payload) 
 
         logging.info(str_to_log)
-        if payload.event_type == const.REACTION_REM:
-            return
+
         self.order_del_reaction(payload.emoji, self.id)
 
+        if   payload.event_type == const.REACTION_REM\
+          or self._secret_info == None:
+            return        
+
+        # TODO bool variable self._info_is_hidden might not always be in sync 
+        # with actual state of panel. Think about better solution.
         if self._info_is_hidden:
             self.update_and_publish(self._secret_info)
             self._info_is_hidden = False

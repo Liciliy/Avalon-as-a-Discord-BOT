@@ -4,6 +4,8 @@ import languages.ukrainian_lang as lang
 
 from .abstract_content_handler import AbsContentHandler
 
+from ..utils import form_embed
+
 class SecretInfoContentHandler(AbsContentHandler):
 
 
@@ -15,7 +17,14 @@ class SecretInfoContentHandler(AbsContentHandler):
             self._panels_handlers.append(game_ch.secret_info_panel)
 
     async def initial_render(self):
+        
+        for panel_hdlr in self._panels_handlers:
+            panel_hdlr.set_content_handler(self) 
 
+            await panel_hdlr.publish(
+                form_embed(author = lang.NOT_READY_YET))
+
+    def update_with_info(self):
         pids_to_channels = self._game.player_id_to_txt_ch_handler_dict 
 
         ch_ids_to_pids =\
@@ -29,4 +38,4 @@ class SecretInfoContentHandler(AbsContentHandler):
             
             secret_info = role.get_secret_info_embed(pid)
 
-            await panel_hdlr.publish(secret_info)
+            panel_hdlr.update_and_publish(secret_info, True)

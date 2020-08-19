@@ -181,6 +181,15 @@ class AvaGame:
         self.player_id_to_emoji_dict = \
             await EmojiHandler.create_emojies_for_game(self) 
 
+        # === Secret Info ===
+        self._secret_info_content_handler = \
+            SecretInfoContentHandler(
+                self,
+                self.player_id_to_txt_ch_handler_dict.values(),
+                self.player_id_to_txt_ch_handler_dict[self.game_master_id].id)
+        await self._secret_info_content_handler.initial_render()
+        # =================  
+
         await self._publish_chat()
 
         self._timer_content_handler =\
@@ -207,6 +216,8 @@ class AvaGame:
     async def start_game(self, msg):  
       
         self.game_state = const.GAME_STARTED_STATE 
+        
+        await msg.delete()  
 
         self.player_id_to_emoji_dict = \
             await EmojiHandler.create_emojies_for_game(self)  
@@ -214,22 +225,17 @@ class AvaGame:
         for _, txt_ch in self.player_id_to_txt_ch_handler_dict.items():
             await txt_ch.clear_pre_game_messages()
 
-
-        # === Setting up roles ============================================== #
+        # === Setting up game roles ============================================== #
         self._numbers_and_roles_handler = NumbersAndRolesHandler(self)
         self.player_id_to_role_dict =\
             self._numbers_and_roles_handler.player_ids_to_roles
+       
+        self._secret_info_content_handler.update_with_info()
         # =================================================================== #
         
         # TODO test code below. Remove later:
-        self._vote_content_handler =\
-            VoteContentHandler(
-                self, 
-                self.player_id_to_txt_ch_handler_dict.values(),
-                self.player_id_to_txt_ch_handler_dict[self.game_master_id].id)
-        await self._vote_content_handler.initial_render() 
-       
-       # === Reactions ===
+               
+        # === Selection panel ===
         self._selection_content_handler =\
             SelectionContentHandler(
                 self,
@@ -243,16 +249,18 @@ class AvaGame:
                           SelectionType.PARTY, 
                           self.players_ids_list[0], 
                           name)
+        # =================
 
-        self._secret_info_content_handler = \
-            SecretInfoContentHandler(
-                self,
+        # === Vote panel ===
+        self._vote_content_handler =\
+            VoteContentHandler(
+                self, 
                 self.player_id_to_txt_ch_handler_dict.values(),
                 self.player_id_to_txt_ch_handler_dict[self.game_master_id].id)
-        await self._secret_info_content_handler.initial_render() 
-
-        
+        await self._vote_content_handler.initial_render() 
         # =================
+
+              
         vpids_to_vote_opts = dict()
         vpids_to_vote_opts[self.players_ids_list[0]] = VoteOptions.ONLY_YES
 
@@ -268,8 +276,7 @@ class AvaGame:
                           VoteType.PARTY_FORMING)
         self._vote_content_handler.start_vote()              
         # ================ End test code ================
-
-        await msg.delete()      
+    
      
     def timer_expired(self):
         pass
@@ -279,7 +286,6 @@ class AvaGame:
 
     def selection_happen(self, content):
         self._vote_content_handler.update_vote_pannels(content)
-
 
     async def display_error_msg(self, msg, error_to_display):
         player_chanel = self.player_id_to_txt_ch_handler_dict[msg.author.id]
