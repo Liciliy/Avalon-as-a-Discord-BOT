@@ -72,7 +72,7 @@ NUM_OF_PLAYERS_TO_GAME_STATS = {
 class NumbersAndRolesHandler:
     _game         = None
     _game_stats   = None
-    pids_to_roles = None
+    _pids_to_roles = None
 
     def __init__(self, game, game_roles = [Merlin, Morgana, Mordred, Persival]):
         # TODO Initialyze game_roles here.
@@ -118,23 +118,54 @@ class NumbersAndRolesHandler:
         random.shuffle(roles)
         random.shuffle(pids)
         
-        self.pids_to_roles = dict()
+        self._pids_to_roles = dict()
 
         for id in range(0, len(pids)):
-            self.pids_to_roles[pids[id]] = roles[id]
+            self._pids_to_roles[pids[id]] = roles[id]
         # =================================================================== #
 
-    def distribute_roles(self):
-        # TODO distribute roles here. 
-        pass
-
     def has_merlin(self):
-        # TODO use this method to let the game understand if merlin hunt needed.
-        pass
+        result = False
+
+        for role in self._pids_to_roles.values():
+            if role == Merlin:
+                result = True
+                break
+
+        return result
 
     def get_merlin_hunter_pid(self):
-        # NOTE should return either Morgana or assassin.
-        pass
+        result = None
+        
+        assasin_pid     = None
+        morgana_pid     = None
+        red_players_pid = list()
+
+        # This loop checks if there is assasin and morgana. 
+        # Also gets other red players IDs
+        for pid, role in self._pids_to_roles.values():
+            
+            if   role == Assassin:
+                assasin_pid = pid
+                break
+
+            elif role == Morgana:
+                morgana_pid = pid 
+
+            elif role.team == Team.RED:
+                red_players_pid.append(pid)
+
+        # Here, choose who will hunt the Merlin.
+        if   assasin_pid != None:
+            result = assasin_pid
+
+        elif morgana_pid != None:
+            result = morgana_pid
+
+        else:
+            result = random.choice(red_players_pid)
+
+        return result
 
     def get_number_of_player_for_mission(self, mission_number):
         return self.\
@@ -146,4 +177,4 @@ class NumbersAndRolesHandler:
     
     @property
     def player_ids_to_roles(self):
-        return self.pids_to_roles
+        return self._pids_to_roles

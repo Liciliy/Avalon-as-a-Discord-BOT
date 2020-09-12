@@ -68,7 +68,7 @@ def tc2():
 
     for pid, role in game.player_id_to_role_dict.items():
         print (f'# === Player #{str(pid)} secret info ===================== #' )
-        print(role.get_secret_info(pid))
+        print(role.get_secret_info_embed(pid))
         print ( '# ======================================================== #' )
 
 def run_test():

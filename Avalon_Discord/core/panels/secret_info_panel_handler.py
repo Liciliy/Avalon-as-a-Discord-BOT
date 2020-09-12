@@ -68,6 +68,6 @@ class SecretInfoPanelHandler(AbsGamePanelHandler):
         else:
             
             self.update_and_publish(
-                form_embed(author = lang.PUCH_EYE_TO_SEE_INFO))
+                form_embed(author = lang.PUSH_EYE_TO_SEE_INFO))
             self._info_is_hidden = True
 

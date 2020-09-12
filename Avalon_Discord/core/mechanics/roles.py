@@ -8,8 +8,8 @@ class Team:
     BLUE = 1
 
     TEAM_TO_STRING = {
-        BLUE : 'Сині',
-        RED  : 'Червоні'
+        BLUE : lang.BLUE_TEAM_NAME,
+        RED  : lang.RED_TEAM_NAME
     }
 
 
@@ -83,8 +83,8 @@ class RedPlayer(AbstractRole):
         self.sees = [RedPlayer, Morgana, Mordred, Assassin]
         
     def get_secret_info_embed(self, this_player_pid):
-        # TODO Think if red players should now each others role.
-            # In real life game they would not now. 
+        # TODO Think if red players should know each others role.
+            # In real life game they would not know. 
             # But if they would - they could, for example, support Morgana, 
             # making Persival think that Morgana is the Merlin.
         color = discord.Color.red()
