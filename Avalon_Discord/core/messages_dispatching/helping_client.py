@@ -49,7 +49,7 @@ class HelpingClient(discord.Client):
                 for task in tasks:
                     try:
 
-                        logging.info(task)
+                        logging.debug(task)
     
                         if task.type == MsgActType.DEL:
                             logging.info('Removing message.')

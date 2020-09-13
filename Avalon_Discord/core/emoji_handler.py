@@ -27,6 +27,8 @@ class EmojiHandler:
             # TODO check if emoji with the same name already exists. 
             # If yes - create new emoji with a modified name. 
 
+            # TODO Think about using players names
+            # instead of PXX emoji name format.
             emoji_name = str(next_emoji_id)
 
             if len(emoji_name) < 2:

@@ -36,6 +36,9 @@ from .content_handlers.selection_content_handler import\
 from .content_handlers.secret_info_content_handler import\
     SecretInfoContentHandler
 
+from .content_handlers.table_content_handler import\
+    TableContentHandler
+
 from .emoji_handler import\
     EmojiHandler
 
@@ -85,6 +88,7 @@ class AvaGame:
     _vote_content_handler        = None
     _selection_content_handler   = None
     _secret_info_content_handler = None
+    _table_content_handler       = None  
 
     _phase = None
 
@@ -178,9 +182,6 @@ class AvaGame:
         for txt_ch_handler in self.player_id_to_txt_ch_handler_dict.values():
             await txt_ch_handler.create_channel_and_invite_player()
         
-        self.player_id_to_emoji_dict = \
-            await EmojiHandler.create_emojies_for_game(self) 
-
         # === Secret Info ===
         self._secret_info_content_handler = \
             SecretInfoContentHandler(
@@ -210,7 +211,7 @@ class AvaGame:
                 break
 
         await self._timer_content_handler.start_timer(0, 60, 'Алісія вікандер', talker_id)
-
+  
         # ================ End test code ================ 
               
     async def start_game(self, msg):  
@@ -234,7 +235,7 @@ class AvaGame:
         # =================================================================== #
         
         # TODO test code below. Remove later:
-               
+
         # === Selection panel ===
         self._selection_content_handler =\
             SelectionContentHandler(
@@ -274,7 +275,15 @@ class AvaGame:
                           2, 
                           vpids_to_vote_opts, 
                           VoteType.PARTY_FORMING)
-        self._vote_content_handler.start_vote()              
+        self._vote_content_handler.start_vote() 
+
+        self._table_content_handler =\
+            TableContentHandler(
+                self, 
+                self.player_id_to_txt_ch_handler_dict.values(),
+                self.player_id_to_txt_ch_handler_dict[self.game_master_id].id)
+        await self._table_content_handler.initial_render()
+                            
         # ================ End test code ================
     
      

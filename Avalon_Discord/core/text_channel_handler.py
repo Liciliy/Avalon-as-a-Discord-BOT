@@ -30,6 +30,9 @@ from .panels.selection_panel_handler import\
 from .panels.secret_info_panel_handler import\
     SecretInfoPanelHandler
 
+from .panels.table_panel_handler import\
+    TablePanelHandler
+
 from .messages_dispatching.task import Task, ContentType, MsgActType
 
 class TextChannelHandler:
@@ -45,6 +48,7 @@ class TextChannelHandler:
     _vote_pnl_handler  = None
     _selection_pnl_handler = None
     _secret_info_pnl_handler = None
+    _table_pnl_handler = None
     
     _pre_game_messages = None      
    
@@ -115,6 +119,8 @@ class TextChannelHandler:
             SelectionPanelHandler(self._game, self)
         self._secret_info_pnl_handler =\
             SecretInfoPanelHandler(self._game, self)
+        self._table_pnl_handler =\
+            TablePanelHandler(self._game, self)
        
         # TODO reorder pannels as they should be visioble to players.
         self._panels_handlers_list = [self._error_pnl_handler, 
@@ -122,7 +128,8 @@ class TextChannelHandler:
                                       self._timer_pnl_handler,
                                       self._vote_pnl_handler,
                                       self._selection_pnl_handler,
-                                      self._secret_info_pnl_handler]
+                                      self._secret_info_pnl_handler,
+                                      self._table_pnl_handler]
 
         await self.invite_player()
 
@@ -216,6 +223,10 @@ class TextChannelHandler:
     @property
     def secret_info_panel(self):
         return self._secret_info_pnl_handler
+    
+    @property
+    def table_panel(self):
+        return self._table_pnl_handler
 
 class GameMasterTxtChHandler(TextChannelHandler):
     _connection_info_pnl_handler = None
