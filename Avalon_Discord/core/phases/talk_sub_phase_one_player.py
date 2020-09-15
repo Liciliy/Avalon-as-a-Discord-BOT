@@ -49,7 +49,8 @@ class OnePlayerTalkSubPhase(AbsTalkSubPhase):
             'Method name: react_on_other_sub_phase_end')
 
     def get_next_sub_phase(self):
-        from .talk_sub_phase_preparation import TalkPrepSubPhase
+        from .talk_sub_phase_preparation    import TalkPrepSubPhase
+        from .talk_sub_phase_all_discussion import AllDiscussionTalkSubPhase
 
         LIST_START_POS = 0
         ONE_MORE_POS   = 1
@@ -63,8 +64,11 @@ class OnePlayerTalkSubPhase(AbsTalkSubPhase):
 
         if self._party_leader == self._talking_player_id:
             logging.info('Retruning next phase - All-Discussion.')
-            # TODO here return a all-discussion sub phase.
-            pass
+            return AllDiscussionTalkSubPhase(
+                                self._phase_handler, 
+                                self._game,
+                                self._party_leader,
+                                self._party_leader)
 
         elif (next_talker_pos) == len(pids):
             next_talker_pos = LIST_START_POS
@@ -118,3 +122,6 @@ class OnePlayerTalkSubPhase(AbsTalkSubPhase):
         
         if not self._sub_phase_ended:
             self._stop()
+
+    def get_talker_avatar_url(self):
+        return self._implemented_get_avatar() 

@@ -45,11 +45,12 @@ class TimerContentHandler(AbsContentHandler):
 
     # Per game round changed variables
     _timer = None
-    _time_to_count           = None
-    _talker_with_timer_ch_id = None
-    _current_talker_name     = None
-    _timer_type              = None
-    _time_runs_out           = None
+    _time_to_count              = None
+    _talker_with_timer_ch_id    = None
+    _current_talker_name        = None
+    _timer_type                 = None
+    _time_runs_out              = None
+    _talking_entity_picture_url = None
     
     # Below variable needed to control playing of a sound when time ends.
     _stoped_by_a_user = None
@@ -263,6 +264,8 @@ class TimerContentHandler(AbsContentHandler):
     def notify_game_timer_expired(self):
         logging.debug('Timer notified about its expiration.')
 
+        self._talking_entity_picture_url = None
+
         if not self._stoped_by_a_user \
               and\
            self._timer_type != TimerType.TALK_PREPARATION_TIMER:
@@ -280,6 +283,19 @@ class TimerContentHandler(AbsContentHandler):
         self.update_panels(0)       
         res_dict = self.get_base_action_end_dict() 
         self._coordinating_sub_phase.react_or_content_handler_action(res_dict)
+
+    def get_talking_entity_picture_url(self):
+        return self._talking_entity_picture_url
+
+    def _set_talking_entity_picture_url(self):
+        result = None
+
+        if self._timer_type in [TimerType.TALKING_TIMER, 
+                                TimerType.TALK_PREPARATION_TIMER]:
+            result = self._coordinating_sub_phase.get_talker_avatar_url()
+
+        # TODO gor balagan and merlin hunt add constant images return
+        self._talking_entity_picture_url = result          
 
     # TODO use start as a high priot awaited task.
     async def start_timer(self, 
@@ -302,7 +318,13 @@ class TimerContentHandler(AbsContentHandler):
         self._timer_type              = timer_type
         self._current_talker_name     = talking_entity_name
         self._talker_with_timer_ch_id = talker_with_timer_ch_id
+        
+        self._set_talking_entity_picture_url()
+
         self.update_panels(time_to_count, True)
+
+        
+
         # TODO find a way to make below awaited task to be higg prio
         # TODO think about starting of the timer in a separate thread.
         await self._timer.start()

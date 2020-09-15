@@ -96,6 +96,11 @@ class AbsSubPhase:
         raise NotImplementedMethodUsage(
           'Method name: react_or_content_handler_action')
 
+    def get_talker_avatar_url(self):
+        logging.warn('Unimplemented method get_talker_avatar_url usage!')
+
+        return None
+    
     def check_if_action_end_type_is_correct(self, 
                                             res_dict, 
                                             res_type_k_word,

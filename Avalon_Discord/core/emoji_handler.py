@@ -46,7 +46,3 @@ class EmojiHandler:
     async def delete_game_emoji(game):
         for emoji in game.player_id_to_emoji_dict.values():
             await emoji.delete()
-
-            
-
-            

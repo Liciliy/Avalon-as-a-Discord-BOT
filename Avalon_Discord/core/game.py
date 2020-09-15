@@ -47,6 +47,8 @@ from .mechanics.mechanics import NumbersAndRolesHandler
 
 from .sound_manager import SoundManager
 
+from .mechanics.game_info import GameInfo
+
 class AvaGame:
 
     # ==== Fields with simple data ========================================== #
@@ -97,6 +99,7 @@ class AvaGame:
 
     _messages_dispatcher = None
     _numbers_and_roles_handler = None
+    _real_time_info_handler = None
     _phases_handler = None
 
     # ======================================================================= #
@@ -245,6 +248,11 @@ class AvaGame:
         self._secret_info_content_handler.update_with_info()
       # =================================================================== #
 
+      # === Setting up game info class. =================================== #
+        self._real_time_info_handler = GameInfo(
+            self._numbers_and_roles_handler.has_merlin())
+      # =================================================================== #
+
       # === Setting up timer content handler and render timer pannels. ==== #  
         self._timer_content_handler =\
             TimerContentHandler(
@@ -253,6 +261,8 @@ class AvaGame:
                 self.player_id_to_txt_ch_handler_dict[self.game_master_id].id)
         await self._timer_content_handler.initial_render()
       # =================================================================== #
+
+      
 
       # TODO test code below. Remove later:
 
@@ -311,7 +321,13 @@ class AvaGame:
       # === Setting up and starting game phases handler =================== #
         from .phases.phase_handler import PhaseHandler
         
-        self._phases_handler = PhaseHandler.initiate_and_get_phase_handler(self)
+        self._phases_handler = \
+          PhaseHandler.initiate_and_get_phase_handler(
+            self,
+            self._numbers_and_roles_handler.get_merlin_hunter_pid,
+            self._numbers_and_roles_handler.get_number_of_player_for_mission,
+            self._numbers_and_roles_handler.get_number_of_fails_to_fail_mission,
+            self._real_time_info_handler.get_current_mission_number)
 
         self._phases_handler.start_phases()
       # =================================================================== #

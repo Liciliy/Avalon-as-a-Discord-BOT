@@ -70,8 +70,8 @@ NUM_OF_PLAYERS_TO_GAME_STATS = {
 
 
 class NumbersAndRolesHandler:
-    _game         = None
-    _game_stats   = None
+    _game          = None
+    _game_stats    = None
     _pids_to_roles = None
 
     def __init__(self, game, game_roles = [Merlin, Morgana, Mordred, Persival]):
@@ -125,6 +125,11 @@ class NumbersAndRolesHandler:
         # =================================================================== #
 
     def has_merlin(self):
+        """Checks if the game has a player with the Merlin role.
+
+        Returns:
+            [bool]: True if ther is the Merlin, False otherwise.
+        """
         result = False
 
         for role in self._pids_to_roles.values():
@@ -135,6 +140,14 @@ class NumbersAndRolesHandler:
         return result
 
     def get_merlin_hunter_pid(self):
+        """Returns Merlin player ID if there is such.
+
+        NOTE This is an interface method!!! Change it with coution.
+
+        Returns:
+            [Integer or None]: Merlin palyer PID if there is such. 
+                               None otherwise.
+        """
         result = None
         
         assasin_pid     = None
@@ -168,10 +181,32 @@ class NumbersAndRolesHandler:
         return result
 
     def get_number_of_player_for_mission(self, mission_number):
+        """Returns number of players needed for a mission with a specific 
+           sequence number.
+        
+        NOTE This is an interface method!!! Change it with coution.
+
+        Args:
+            mission_number ([Integer]): mission sequence number
+
+        Returns:
+            [Integer]: Number of players needed.
+        """
         return self.\
             _game_stats.get_number_of_player_for_mission(mission_number)
 
     def get_number_of_fails_to_fail_mission(self, mission_number):
+        """[summary]Returns number of fails needed to fail a mission with a
+           specific  sequence number.
+        
+        NOTE This is an interface method!!! Change it with coution.
+
+        Args:
+            mission_number ([Integer]): mission sequence number
+
+        Returns:
+            [Integer]: Number of fails needed.
+        """
         return self.\
             _game_stats.get_number_of_fails_to_fail_mission(mission_number)
     

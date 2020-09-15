@@ -10,9 +10,32 @@ from core.mechanics.test.numbers_roles_test \
 from core.mechanics.test.game_info_test \
     import run_test as game_info_test
 
+class TestExce:
+    _method = None
+    
+    def take_method(self, meth):
+        self._method = meth
+
+    def exec_meth(self):
+        self._method(1)
+
+
+class TestObj:
+
+    def print_stuff(self, integer_to_prt):
+
+        print ('Int is: ', integer_to_prt)
+
 
 if __name__ == "__main__":
-    vote_test()
-    selection_test()
-    roles_test()
-    game_info_test()
+    #vote_test()
+    #selection_test()
+    #roles_test()
+    #game_info_test()
+
+    test_obj = TestObj()
+    test_exec = TestExce()
+
+    test_exec.take_method(test_obj.print_stuff)
+
+    test_exec.exec_meth()

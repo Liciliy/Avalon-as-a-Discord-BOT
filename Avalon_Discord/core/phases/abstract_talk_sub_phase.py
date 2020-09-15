@@ -36,6 +36,13 @@ class AbsTalkSubPhase(AbsSubPhase):
         self._talking_player_id = talking_player_id
         self._sub_phase_ended   = False
 
+    def _implemented_get_avatar(self):
+        AVATAR_SIZE_TO_USE = 64 # NOTE MUST BE POWER OF TWO
+        guild_member = \
+            self._game.player_id_to_guild_member_dict[self._talking_player_id]
+
+        return guild_member.avatar_url_as(size = AVATAR_SIZE_TO_USE)   
+
     @property
     def timer_content_handler(self):
         return self._game.timer_content_handler

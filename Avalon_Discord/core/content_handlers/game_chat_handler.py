@@ -7,7 +7,7 @@ class ChatHandler:
 
     MAX_CHAT_LENGHT     = 2000
     USER_MAX_NICK_LEN   = 33
-    CHAT_HEADER_CONTENT = ':loudspeaker: **CHAT** '
+    CHAT_HEADER_CONTENT = '📨 **CHAT** '
 
     header_size      = len(CHAT_HEADER_CONTENT)
     content_max_size = MAX_CHAT_LENGHT - (header_size + USER_MAX_NICK_LEN)

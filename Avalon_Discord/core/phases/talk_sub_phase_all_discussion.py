@@ -12,29 +12,38 @@ from ..content_handlers.timer_content_handler import TimerType
 
 from ..common import NotImplementedMethodUsage
 
-class TalkPrepSubPhase(AbsTalkSubPhase):
+from .phase_handler import PhaseHandler
 
-    DEF_PREPARATION_TIME_S = 3
-    PREP_END_TYPE = ExecutionEndType.PREP_ENDED
+class AllDiscussionTalkSubPhase(AbsTalkSubPhase):
 
-    PREP_END_K_WORD = ResDictKWords.ENDED_ACTION_TYPE
+    ONE_MINUTE_S = 60
+    ALL_DISCUS_END_TYPE = ExecutionEndType.DISCUSSION_END
 
-    _prep_time = None
+    TALK_END_K_WORD = ResDictKWords.ENDED_ACTION_TYPE
+
+    _talk_time = None
 
     def __init__(self, 
-                 phase_handler,
+                 phase_handler : PhaseHandler,
                  game,
                  talking_player_id,
-                 party_leader,
-                 prep_time = DEF_PREPARATION_TIME_S):
+                 party_leader):
 
         super().__init__(phase_handler, 
-                         TalkSubPhaseHandledActions.TALK_PREPARATION_PHASE,
+                         TalkSubPhaseHandledActions.ALL_DISCUSSION_TALK,
                          game,
                          talking_player_id,
                          party_leader)
+
+        num_of_players_on_mission = \
+            phase_handler.get_current_mission_players_num()
+
+        logging.info(
+            f'Number of mission needed players {num_of_players_on_mission}')
+
         
-        self._prep_time = prep_time
+        self._talk_time = AllDiscussionTalkSubPhase.ONE_MINUTE_S \
+                        * int(num_of_players_on_mission)
 
     def react_on_other_sub_phase_end(self):
         """Check type of other sub phase handled action.
@@ -49,25 +58,23 @@ class TalkPrepSubPhase(AbsTalkSubPhase):
             'Method name: react_on_other_sub_phase_end')
 
     def get_next_sub_phase(self):
+        from .talk_sub_phase_no_talks import NoTalkTalkSubPhase
 
-        from . talk_sub_phase_one_player import OnePlayerTalkSubPhase
-        logging.info(
-            f'Retruning next phase - {OnePlayerTalkSubPhase.__name__}.')
-        return OnePlayerTalkSubPhase(self._phase_handler, 
-                                     self._game,
-                                     self._talking_player_id,
-                                     self._party_leader)
+        logging.info(f'Retruning next phase - {NoTalkTalkSubPhase.__name__}.')
+        return NoTalkTalkSubPhase(self._phase_handler, 
+                                  self._game,
+                                  self._party_leader,
+                                  self._party_leader)
 
     def start(self):
         logging.info('Starting phase.')
         self._sub_phase_ended = False
         self.timer_content_handler.\
-                set_coordinating_sub_phase_and_expected_end(self, 
-                                           TalkPrepSubPhase.PREP_END_TYPE,
-                                           TalkPrepSubPhase.PREP_END_K_WORD)
+                set_coordinating_sub_phase_and_expected_end(
+                    self, 
+                    AllDiscussionTalkSubPhase.ALL_DISCUS_END_TYPE,
+                    AllDiscussionTalkSubPhase.TALK_END_K_WORD)
 
-        player_name = self._game.player_id_to_name_dict[self._talking_player_id]
-        
         ch_id = self._game.\
             player_id_to_txt_ch_handler_dict[self._talking_player_id].id
 
@@ -75,9 +82,9 @@ class TalkPrepSubPhase(AbsTalkSubPhase):
 
         event_loop.create_task(
             self.timer_content_handler.start_timer(
-                TimerType.TALK_PREPARATION_TIMER,
-                self._prep_time,
-                player_name,
+                TimerType.BALAGAN_TIMER,
+                self._talk_time,
+                '',
                 ch_id
             )
         )
@@ -88,11 +95,11 @@ class TalkPrepSubPhase(AbsTalkSubPhase):
         self._notify_phase_handler_about_this_phase_end()
 
     def react_or_content_handler_action(self, content_dict):   
-       
+
         res_type_is_correct = self.check_if_action_end_type_is_correct(
-                                        content_dict,
-                                        TalkPrepSubPhase.PREP_END_K_WORD,
-                                        TalkPrepSubPhase.PREP_END_TYPE)
+                                content_dict,
+                                AllDiscussionTalkSubPhase.TALK_END_K_WORD,
+                                AllDiscussionTalkSubPhase.ALL_DISCUS_END_TYPE)
 
         if not res_type_is_correct:
             # TODO think if it is really needed to make any actions here.
@@ -100,6 +107,3 @@ class TalkPrepSubPhase(AbsTalkSubPhase):
         
         if not self._sub_phase_ended:
             self._stop()
-
-    def get_talker_avatar_url(self):
-        return self._implemented_get_avatar() 
