@@ -27,9 +27,13 @@ class TableContentHandler(AbsContentHandler):
 
         players_emojies = list()
 
-        for _, em in game.player_id_to_emoji_dict.items():
-            emoji_as_str = str(em)
+        for pid in game.players_ids_list:
+            emoji_as_str = str(game.player_id_to_emoji_dict[pid])
             players_emojies.append(emoji_as_str)
+
+        #for _, em in game.player_id_to_emoji_dict.items():
+        #    emoji_as_str = str(em)
+        #    players_emojies.append(emoji_as_str)
 
         self._players_ems_in_talk_order_str = ' '.join(players_emojies)
 

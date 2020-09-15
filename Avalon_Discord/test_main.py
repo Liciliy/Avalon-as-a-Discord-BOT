@@ -1,3 +1,4 @@
+import os
 import discord
 import logging
 import asyncio
@@ -77,6 +78,62 @@ async def on_message(message):
 
     if message.content.startswith('crv'):
         vote_pan = VotePanelHandler(None, message.channel)
+
+    if message.content.startswith('soundon'):
+
+        user = message.author
+
+        print(user)
+
+        voice_state   = user.voice
+        print(voice_state)
+        voice_channel = voice_state.channel
+        # only play music if user is in a voice channel
+        if voice_channel != None:
+            vc = await voice_channel.connect()
+
+            #player = vc.create_ffmpeg_player('hearbeat.wav', after = lambda: print('done'))
+            #player.start()
+            #while not player.is_done():
+            #    await asyncio.sleep(1)
+
+            #await vc.disconnect()
+
+            sounds_dir_name = 'sounds'
+
+            this_dir = os.path.dirname(os.path.realpath(__file__))
+
+            sounds_dir = os.path.join(str(this_dir), sounds_dir_name)
+
+            first_sound = os.path.join(sounds_dir, "analog-alarm-clock_quiter_2_sec.wav")
+            third_sound = os.path.join(sounds_dir, "hearbeat_quiet_14_5_sec.wav")
+         
+            
+
+            
+
+            hb = discord.FFmpegPCMAudio(third_sound)
+
+            if not vc.is_playing():
+                vc.play(hb, after=None)
+
+            while vc.is_playing():
+                await asyncio.sleep(0.2)                
+
+            clock = discord.FFmpegPCMAudio(first_sound)
+
+            if not vc.is_playing():
+                vc.play(clock, after=None)
+
+
+            while vc.is_playing():
+                await asyncio.sleep(0.2)    
+
+
+
+            await vc.disconnect()
+
+
 
     if message.content.startswith('vote1'):
         header_embed = form_embed(descr = 'Test vote:',

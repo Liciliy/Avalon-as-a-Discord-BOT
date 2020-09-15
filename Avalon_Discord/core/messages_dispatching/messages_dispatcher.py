@@ -36,9 +36,7 @@ class MessagesDispatcher:
                 HELPING_THREAD_NAME_TEMPLATE.format(id = helper_thread_id))
             self._tasks_queues.append(new_queue)
             helper_thread_id += 1
-
-            
-
+          
     def order_task_to_execute(
         self, 
         task: Task)\
@@ -46,9 +44,9 @@ class MessagesDispatcher:
         
         most_free_task_queue = self._tasks_queues[0]
         self._tasks_queues.rotate()
-        logging.info('Adding a task to queue...')
+        logging.debug('Adding a task to queue...')
         most_free_task_queue.add_task(task)
-        logging.info('Task added to queue.')
+        logging.debug('Task added to queue.')
 
     # TODO Consider to add stop functionality?
             

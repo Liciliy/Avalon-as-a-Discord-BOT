@@ -44,7 +44,7 @@ class HelpingClient(discord.Client):
             if not self._task_queue.is_empty:
                 tasks = self._task_queue.get_tasks()
 
-                logging.info('Got {num} new task(s)'.format(num = len(tasks)))
+                logging.debug('Got {num} new task(s)'.format(num = len(tasks)))
 
                 for task in tasks:
                     try:
@@ -52,13 +52,13 @@ class HelpingClient(discord.Client):
                         logging.debug(task)
     
                         if task.type == MsgActType.DEL:
-                            logging.info('Removing message.')
+                            logging.debug('Removing message.')
                             await self.http.delete_message(
                                 task.channel_id, 
                                 task.message_id)
 
                         elif task.type == MsgActType.ADD_REACT:
-                            logging.info('Adding reaction: ' 
+                            logging.debug('Adding reaction: ' 
                                          + str(task.content))
 
                             await self.http.add_reaction(
@@ -67,7 +67,7 @@ class HelpingClient(discord.Client):
                                 emoji      = task.content)  
 
                         elif task.type == MsgActType.DEL_REACT:
-                            logging.info('Removing reaction: ' 
+                            logging.debug('Removing reaction: ' 
                                          + str(task.content))
 
                             await self.http.remove_reaction(
@@ -77,7 +77,7 @@ class HelpingClient(discord.Client):
                                 member_id  = task.member_id)     
 
                         elif task.type == MsgActType.DEL_OWN_REACT:
-                            logging.info('Removing bot reaction: ' 
+                            logging.debug('Removing bot reaction: ' 
                                          + str(task.content))
 
                             await self.http.remove_own_reaction(
@@ -86,7 +86,7 @@ class HelpingClient(discord.Client):
                                 emoji      = task.content)                                                            
           
                         elif task.type == MsgActType.DEL_ALL_REACT:
-                            logging.info('Removing all reactions: ' 
+                            logging.debug('Removing all reactions: ' 
                                          + str(task.content))
 
                             await self.http.clear_reactions(
@@ -104,11 +104,11 @@ class HelpingClient(discord.Client):
                                 # TODO need separate test for this type of msg content.
                                 text = ' File send NOT implemented yet'
                             elif task.content_type == ContentType.EMBED:
-                                logging.info('Message type is Embed.')
+                                logging.debug('Message type is Embed.')
                                 embed = task.content
     
                             elif task.content_type == ContentType.TEXT:
-                                logging.info('Message type is Text.')
+                                logging.debug('Message type is Text.')
                                 text = task.content
                             else:
                                 # TODO think about processing an error somehow
@@ -117,7 +117,7 @@ class HelpingClient(discord.Client):
                                                + str(task.content_type))
     
                             if task.type == MsgActType.SEND:
-                                logging.info('Sending a message.')
+                                logging.debug('Sending a message.')
     
                                 if text  != None: text  = str(text)
                                 if embed != None: embed = embed.to_dict()
@@ -127,10 +127,10 @@ class HelpingClient(discord.Client):
                                     content = text, 
                                     embed = embed)
                                 
-                                logging.info('Msg sent.')
+                                logging.debug('Msg sent.')
     
                             else:
-                                logging.info('Editing a message.')
+                                logging.debug('Editing a message.')
                                 fields = dict()
                                 if text  != None: 
                                     fields['content'] = str(text)

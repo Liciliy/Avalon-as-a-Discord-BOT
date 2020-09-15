@@ -5,12 +5,21 @@ class VoiceChannelHandler:
     __game                 = None
     __voice_channel        = None
     __voice_channel_invite = None
+    _voice_client_instance = None
 
     def __init__(self, game):
-        self.__game = game        
+        self.__game = game     
+
+    async def connect_bot_to_voice_channel(self):
+        # TODO check if the bot can join the server - it may happen, that it is 
+        # already connected to other game voice channel - then he can't be used 
+        # here.
+
+        self._voice_client_instance = await self.__voice_channel.connect() 
+
 
     async def create_channel_with_invite(self):
-        game_guild = self.__game.game_hosting_guild
+        game_guild = self.__game.game_hosting_guild   
 
         overwrites = dict()
 
@@ -53,7 +62,55 @@ class VoiceChannelHandler:
 
         for member in self.__game.player_id_to_guild_member_dict.values():
             if member not in self.__voice_channel.members:
-                result.append(member.name)
-                
+                result.append(member.name)  
 
-        return result 
+        return result
+
+    @property
+    def _voice_client(self) -> discord.VoiceClient:
+        return self._voice_client_instance
+
+    def play_sound_file(self, file_path):
+        vc = self._voice_client
+        
+        if vc == None:
+            logging.warning(
+              'A request to play sound was recieved but Voice Client is None.')
+        
+        else:
+            if vc.is_playing() or vc.is_paused():
+                vc.stop()
+
+            sound_source = discord.FFmpegPCMAudio(file_path)
+
+            vc.play(sound_source)
+
+    def pause_sounds(self):
+        vc = self._voice_client
+
+        if vc == None:
+            logging.warning(
+              'A request to pause sound was recieved but Voice Client is None.')
+        
+        elif vc.is_playing():
+            vc.pause()
+
+    def resume_sounds(self):
+        vc = self._voice_client
+
+        if vc == None:
+            logging.warning(
+             'A request to resume sound was recieved but Voice Client is None.')
+        
+        elif vc.is_paused():
+            vc.resume()
+
+    def stop_sounds(self):
+        vc = self._voice_client
+
+        if vc == None:
+            logging.warning(
+              'A request to stop sound was recieved but Voice Client is None.')
+        
+        elif vc.is_playing() or vc.is_paused():
+            vc.stop()

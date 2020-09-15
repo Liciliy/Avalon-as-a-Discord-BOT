@@ -5,12 +5,15 @@ import logging
 from collections import deque
 
 import languages.ukrainian_lang as lang
+
 from ..panels.abstract_panel_handler import PanelContent
 from .abstract_content_handler import AbsContentHandler
 
+from ..sound_manager import SoundManager
+
 class TimerType:
     TALKING_TIMER          = 0
-    TALK_PREPARATION_TIME  = 1
+    TALK_PREPARATION_TIMER  = 1
     BALAGAN_TIMER          = 2
     MERLIN_HUNT_TALK_TIMER = 3
 
@@ -48,6 +51,9 @@ class TimerContentHandler(AbsContentHandler):
     _timer_type              = None
     _time_runs_out           = None
     
+    # Below variable needed to control playing of a sound when time ends.
+    _stoped_by_a_user = None
+    
     # TODO use master player ID isntad of channel ID
     def __init__(self, 
                  game, 
@@ -68,7 +74,7 @@ class TimerContentHandler(AbsContentHandler):
         
         for pannel_hdlr in self._panels_handlers:
             pannel_hdlr.set_content_handler(self)
-            await pannel_hdlr.publish('No timer active yet!')
+            await pannel_hdlr.publish(lang.TIMER_NOT_STARTED_YET)
             
             if pannel_hdlr.channel_id == self._master_channel_id:
                 reactions = [TimerContentHandler.PAUSE_REACT,
@@ -86,7 +92,7 @@ class TimerContentHandler(AbsContentHandler):
         
         t_type = self._timer_type
         for pannel_hdlr in self._panels_handlers:
-            if t_type == TimerType.TALK_PREPARATION_TIME:
+            if t_type == TimerType.TALK_PREPARATION_TIMER:
                 self._preparation_panels_update(pannel_hdlr,
                                                 initial_update)
 
@@ -118,7 +124,12 @@ class TimerContentHandler(AbsContentHandler):
 
             else:
                 logging.error('Unknown timer type received: ' + str(t_type))
- 
+         
+        if time_left < TimerContentHandler.TIMER_RUNS_OUT_THR_SEC\
+              and \
+           not self._time_runs_out:
+            self._time_runs_out = True
+
     def _preparation_panels_update(self,
                                    pannel_hdlr,
                                    initial_update):
@@ -160,6 +171,7 @@ class TimerContentHandler(AbsContentHandler):
                     + actual_timer_segments
 
             pannel_hdlr.update_and_publish(PanelContent(text, reactions))
+       
         # Handling non-talkers
         else:
             if initial_update:
@@ -169,7 +181,8 @@ class TimerContentHandler(AbsContentHandler):
 
             elif time_left < TimerContentHandler.TIMER_RUNS_OUT_THR_SEC\
               and not self._time_runs_out:
-                self._time_runs_out = True
+                SoundManager.play_heart_beat_14_5_sec()
+                #self._time_runs_out = True
                 content = TimerContentHandler.X_IS_TALKING.\
                             format(name = self._current_talker_name)\
                         + TimerContentHandler.LESS_THAN_X_LEFT
@@ -203,7 +216,8 @@ class TimerContentHandler(AbsContentHandler):
         # Handling non-master players last X sec.
         elif time_left < TimerContentHandler.TIMER_RUNS_OUT_THR_SEC\
           and not self._time_runs_out:
-            self._time_runs_out = True
+            SoundManager.play_heart_beat_14_5_sec()
+            #self._time_runs_out = True
             content = TimerContentHandler.X_ARE_TALKING.\
                         format(group = TimerContentHandler.ALL_PLAYERS)\
                     + TimerContentHandler.LESS_THAN_X_LEFT
@@ -238,7 +252,8 @@ class TimerContentHandler(AbsContentHandler):
         # Handling non-talking players last seconds.
         elif time_left < TimerContentHandler.TIMER_RUNS_OUT_THR_SEC\
           and not self._time_runs_out:
-            self._time_runs_out = True
+            SoundManager.play_heart_beat_14_5_sec()
+            #self._time_runs_out = True
             content = TimerContentHandler.MERLIN_HUNT\
                     + TimerContentHandler.X_ARE_TALKING.\
                         format(group = TimerContentHandler.RED_PALYERS)\
@@ -246,7 +261,13 @@ class TimerContentHandler(AbsContentHandler):
             pannel_hdlr.update_and_publish(content)
 
     def notify_game_timer_expired(self):
-        logging.info('Timer notified about its expiration.')
+        logging.debug('Timer notified about its expiration.')
+
+        if not self._stoped_by_a_user \
+              and\
+           self._timer_type != TimerType.TALK_PREPARATION_TIMER:
+            SoundManager.play_clock_alarm_2_s()
+
         if self._timer_type == TimerType.TALKING_TIMER:
 
             for pannel_hdlr in self._panels_handlers:    
@@ -256,8 +277,9 @@ class TimerContentHandler(AbsContentHandler):
                                                        pannel_hdlr.id)
                     break 
 
-        self.update_panels(0)
-        # TODO here notify game phase about timer exparation.
+        self.update_panels(0)       
+        res_dict = self.get_base_action_end_dict() 
+        self._coordinating_sub_phase.react_or_content_handler_action(res_dict)
 
     # TODO use start as a high priot awaited task.
     async def start_timer(self, 
@@ -271,7 +293,9 @@ class TimerContentHandler(AbsContentHandler):
                      '. Talker channel ID '   + str(talker_with_timer_ch_id)+
                      '. Time: '               + str(time_to_count))
 
-        self._time_runs_out = False             
+        self._time_runs_out = False  
+        
+        self._stoped_by_a_user = False           
 
         self._timer                   = Timer(time_to_count, self)
         self._time_to_count           = time_to_count
@@ -286,12 +310,23 @@ class TimerContentHandler(AbsContentHandler):
     def handle_reaction(self, emoji_str):
         if emoji_str   == TimerContentHandler.RESTART_REACT:
             self._timer.restart()
+            self._time_runs_out = False
+            self._stoped_by_a_user = False
+               
+            SoundManager.stop_sounds()
+
         elif emoji_str == TimerContentHandler.PAUSE_REACT:
             self._timer.pause() 
+            SoundManager.pause_sounds()
+
         elif emoji_str == TimerContentHandler.END_REACT:
+            self._stoped_by_a_user = True
             self._timer.stop()
+            SoundManager.stop_sounds()
+
         elif emoji_str == TimerContentHandler.RESUME_REACT:
             self._timer.resume()
+            SoundManager.resume_sounds()
 
 
 class Timer:
@@ -331,6 +366,7 @@ class Timer:
     _time_to_count         = None
     _is_active             = None
     _is_paused             = None
+
 
     def __init__(self, time, timer_content_handler):
         

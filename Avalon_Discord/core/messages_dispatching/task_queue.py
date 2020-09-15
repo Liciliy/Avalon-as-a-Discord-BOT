@@ -58,7 +58,7 @@ class TaskQueue:
     @thread_safe
     def add_task(self, task):  
 
-        logging.info('A task received. Adding to a task list.')
+        logging.debug('A task received. Adding to a task list.')
 
         self._queue.append(task)
 
@@ -67,7 +67,7 @@ class TaskQueue:
         result = list()
 
         while len(self._queue) > 0:
-            logging.info('A task(s) to execute found. Moving to an executor.')
+            logging.debug('A task(s) to execute found. Moving to an executor.')
             result.append(self._queue.popleft())
 
         return result

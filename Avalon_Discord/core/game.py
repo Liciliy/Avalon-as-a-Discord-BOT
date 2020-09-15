@@ -1,3 +1,4 @@
+import random
 import logging
 import asyncio
 import discord.guild
@@ -43,6 +44,8 @@ from .emoji_handler import\
     EmojiHandler
 
 from .mechanics.mechanics import NumbersAndRolesHandler
+
+from .sound_manager import SoundManager
 
 class AvaGame:
 
@@ -94,6 +97,7 @@ class AvaGame:
 
     _messages_dispatcher = None
     _numbers_and_roles_handler = None
+    _phases_handler = None
 
     # ======================================================================= #
 
@@ -193,24 +197,24 @@ class AvaGame:
 
         await self._publish_chat()
 
-        self._timer_content_handler =\
-            TimerContentHandler(
-                self, 
-                self.player_id_to_txt_ch_handler_dict.values(),
-                self.player_id_to_txt_ch_handler_dict[self.game_master_id].id)
-        await self._timer_content_handler.initial_render()
+        # TODO timer test code below. Remove later:
 
-        # TODO test code below. Remove later:
-
-        master_ch_id = self.player_id_to_txt_ch_handler_dict[self.game_master_id].id
-        
-        talker_id = None
-        for ch in self.player_id_to_txt_ch_handler_dict.values():
-            if ch.id != master_ch_id:
-                talker_id = ch.id
-                break
-
-        await self._timer_content_handler.start_timer(0, 60, 'Алісія вікандер', talker_id)
+        # self._timer_content_handler =\
+        #     TimerContentHandler(
+        #         self, 
+        #         self.player_id_to_txt_ch_handler_dict.values(),
+        #         self.player_id_to_txt_ch_handler_dict[self.game_master_id].id)
+        # await self._timer_content_handler.initial_render()
+ 
+        # master_ch_id = self.player_id_to_txt_ch_handler_dict[self.game_master_id].id
+        # 
+        # talker_id = None
+        # for ch in self.player_id_to_txt_ch_handler_dict.values():
+        #     if ch.id != master_ch_id:
+        #         talker_id = ch.id
+        #         break
+ 
+        # await self._timer_content_handler.start_timer(0, 60, 'Алісія вікандер', talker_id)
   
         # ================ End test code ================ 
               
@@ -218,7 +222,9 @@ class AvaGame:
       
         self.game_state = const.GAME_STARTED_STATE 
         
-        await msg.delete()  
+        await msg.delete() 
+        
+        random.shuffle(self.players_ids_list)
 
         self.player_id_to_emoji_dict = \
             await EmojiHandler.create_emojies_for_game(self)  
@@ -226,17 +232,31 @@ class AvaGame:
         for _, txt_ch in self.player_id_to_txt_ch_handler_dict.items():
             await txt_ch.clear_pre_game_messages()
 
-        # === Setting up game roles ============================================== #
+      # === Setup sound handling ========================================== #
+        await self._voice_handler.connect_bot_to_voice_channel()
+        SoundManager.setup_sound_manager(self._voice_handler)
+      # =================================================================== #
+
+      # === Setting up game roles ========================================= #
         self._numbers_and_roles_handler = NumbersAndRolesHandler(self)
         self.player_id_to_role_dict =\
             self._numbers_and_roles_handler.player_ids_to_roles
        
         self._secret_info_content_handler.update_with_info()
-        # =================================================================== #
-        
-        # TODO test code below. Remove later:
+      # =================================================================== #
 
-        # === Selection panel ===
+      # === Setting up timer content handler and render timer pannels. ==== #  
+        self._timer_content_handler =\
+            TimerContentHandler(
+                self, 
+                self.player_id_to_txt_ch_handler_dict.values(),
+                self.player_id_to_txt_ch_handler_dict[self.game_master_id].id)
+        await self._timer_content_handler.initial_render()
+      # =================================================================== #
+
+      # TODO test code below. Remove later:
+
+       # === Selection panel ===
         self._selection_content_handler =\
             SelectionContentHandler(
                 self,
@@ -250,18 +270,18 @@ class AvaGame:
                           SelectionType.PARTY, 
                           self.players_ids_list[0], 
                           name)
-        # =================
+       # =================
 
-        # === Vote panel ===
+       # === Vote panel ===
         self._vote_content_handler =\
             VoteContentHandler(
                 self, 
                 self.player_id_to_txt_ch_handler_dict.values(),
                 self.player_id_to_txt_ch_handler_dict[self.game_master_id].id)
         await self._vote_content_handler.initial_render() 
-        # =================
+       # =================
 
-              
+       # === Vote and selection setup panel ===
         vpids_to_vote_opts = dict()
         vpids_to_vote_opts[self.players_ids_list[0]] = VoteOptions.ONLY_YES
 
@@ -275,24 +295,36 @@ class AvaGame:
                           2, 
                           vpids_to_vote_opts, 
                           VoteType.PARTY_FORMING)
-        self._vote_content_handler.start_vote() 
+        self._vote_content_handler.start_vote()
+       # ================= 
 
+       # === Temporary table panel ===
         self._table_content_handler =\
             TableContentHandler(
                 self, 
                 self.player_id_to_txt_ch_handler_dict.values(),
                 self.player_id_to_txt_ch_handler_dict[self.game_master_id].id)
         await self._table_content_handler.initial_render()
-                            
-        # ================ End test code ================
-    
-     
+       # =================                     
+      # ================ End test code ================
+        
+      # === Setting up and starting game phases handler =================== #
+        from .phases.phase_handler import PhaseHandler
+        
+        self._phases_handler = PhaseHandler.initiate_and_get_phase_handler(self)
+
+        self._phases_handler.start_phases()
+      # =================================================================== #
+
+    # TODO check if below func is needed 
     def timer_expired(self):
         pass
 
+    # TODO check if below func is needed 
     def vote_is_done(self, content):
         pass
 
+    # TODO check if below func is needed 
     def selection_happen(self, content):
         self._vote_content_handler.update_vote_pannels(content)
 
@@ -459,3 +491,23 @@ class AvaGame:
     @property
     def number_of_players(self):
         return len(self.players_ids_list) 
+
+    @property
+    def timer_content_handler(self):
+        return self._timer_content_handler
+
+    @property
+    def vote_content_handler(self):
+        return self._vote_content_handler 
+
+    @property
+    def selection_content_handler(self):
+        return self._selection_content_handler
+
+    @property
+    def secret_info_content_handler(self):
+        return self._secret_info_content_handler
+
+    @property
+    def table_content_handler(self):
+        return self._table_content_handler
