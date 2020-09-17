@@ -213,7 +213,7 @@ VOTE_LEADER_SELECT_PLAYERS_RDY   =\
       '▪️ **Позначено {sel} з {need} гравців. Обрати їх?**'
 VOTE_LEADER_SELECT_PLAYERS_TALKS =\
 '▪️ **Позначено {sel} з {need} гравців.\
-\nВи зможете обрати їх коли всі скажуть своє слово.**'
+\n▪️ Ви зможете обрати їх коли всі скажуть своє слово.**'
 VOTE_PLAYERS_SELECTED          = '▪️ **Потенційні герої ({sel} з {need}):**'
 
 VOTE_MISSION_HAS_STARTED   = '▪️ **Пригода почалась!**'

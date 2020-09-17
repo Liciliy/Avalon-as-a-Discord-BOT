@@ -17,6 +17,21 @@ class TimerType:
     BALAGAN_TIMER          = 2
     MERLIN_HUNT_TALK_TIMER = 3
 
+class TimerPanelContent(PanelContent):
+    avatar_url = None
+    no_pic     = None
+
+    def __init__(self, 
+                 text = None, 
+                 reactions = None, 
+                 avatar_url = None,
+                 no_pic     = True):
+
+        super().__init__(text = text, reactions = reactions)
+
+        self.avatar_url = avatar_url
+        self.no_pic = no_pic
+
 
 class TimerContentHandler(AbsContentHandler):
     TIMER_RUNS_OUT_THR_SEC = 15
@@ -162,7 +177,8 @@ class TimerContentHandler(AbsContentHandler):
                     + actual_timer_segments
             if initial_update: 
                 reactions = [TimerContentHandler.END_REACT]
-            pannel_hdlr.update_and_publish(PanelContent(text, reactions))
+            pannel_hdlr.update_and_publish(
+                TimerPanelContent(text, reactions, None, True))
         
         # Handling master
         elif pannel_hdlr.channel_id == self._master_channel_id:
@@ -171,7 +187,8 @@ class TimerContentHandler(AbsContentHandler):
                     + TimerContentHandler.TIME_LEFT \
                     + actual_timer_segments
 
-            pannel_hdlr.update_and_publish(PanelContent(text, reactions))
+            pannel_hdlr.update_and_publish(
+                TimerPanelContent(text, reactions, None, True))
        
         # Handling non-talkers
         else:

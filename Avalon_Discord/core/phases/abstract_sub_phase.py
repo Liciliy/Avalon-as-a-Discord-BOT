@@ -16,6 +16,12 @@ class VoteSubPhaseHandledActions:
 
 class ResDictKWords:
     ENDED_ACTION_TYPE = 'ended_action_type'
+    SELECTION_CHANGED = 'selection_changed'
+
+class InterPhaseCrucialActions:
+    PLAYERS_SPEACHES_ROUND_ENDED = 301
+    VOTE_SUB_PHASES_CHAIN_ENDED  = 302
+    MERLIN_HUNT_IS_STARTED       = 303
 
 class AbsSubPhase:
     
@@ -41,7 +47,7 @@ class AbsSubPhase:
     def _notify_phase_handler_about_this_phase_end(self):
         self._phase_handler.sub_phase_ended(self)
 
-    def react_on_other_sub_phase_end(self):
+    def react_on_other_sub_phase_action(self, content : dict):
         """Check type of other sub phase handled action.
         If the action end requires any reactions from this phase - the response
         actions are executed.
@@ -51,7 +57,7 @@ class AbsSubPhase:
         """
         logging.critical('Unimplemented method usage!')
         raise NotImplementedMethodUsage(\
-            'Method name: react_on_other_sub_phase_end')
+            'Method name: react_on_other_sub_phase_action')
 
     def get_next_sub_phase(self):
         """Constructs a next-to-be-executed sub phase of this type and

@@ -13,7 +13,8 @@ from .abstract_panel_handler import\
     PanelContent
 
 from ..content_handlers.timer_content_handler import\
-    TimerContentHandler
+    TimerContentHandler,\
+    TimerPanelContent
 
 class TimerPanelHandler(AbsGamePanelHandler):    
 
@@ -41,13 +42,28 @@ class TimerPanelHandler(AbsGamePanelHandler):
                                               reactions are requested to 
                                               be updated if  they are not None.
         """
-        if type(content) == PanelContent:
+        if type(content) == TimerPanelContent:
+            if content.text != None:
+                
+
+                embed = self.to_embed(content.text, 
+                                      content.avatar_url,
+                                      content.no_pic)
+
+                self.order_edit_task(embed, 
+                                     self._message.id)
+            if content.reactions != None:
+                for reaction in content.reactions:
+                    self.order_add_reaction(reaction, self._message.id)
+
+        elif type(content) == PanelContent:
             if content.text != None:
                 self.order_edit_task(self.to_embed(content.text), 
                                      self._message.id)
             if content.reactions != None:
                 for reaction in content.reactions:
                     self.order_add_reaction(reaction, self._message.id)
+        
         else:
             self.order_edit_task(self.to_embed(content), self._message.id)
 
@@ -79,20 +95,29 @@ class TimerPanelHandler(AbsGamePanelHandler):
         self.order_del_reaction(payload.emoji, self.id)
         self._content_handler.handle_reaction(str(payload.emoji))
     
-    def to_embed(self, text):
+    def to_embed(self, text, pic_url = None, no_pic = False):
         embed = \
             Embed(
                 colour      = discord.Colour(0x1fca2c), 
-                description = text )
+                description = text )        
 
-        picture_url = self._content_handler.get_talking_entity_picture_url()
+        logging.debug('Embed text is: ' + str(text))
 
-        logging.info('Embed text is: ' + str(text))
+        picture_url = pic_url
 
-        if picture_url != None:
+        if no_pic:
+            pass
+
+        elif picture_url != None:
             embed.set_thumbnail(url = picture_url)
-            logging.warn('Avatar URL is: ' + str(picture_url))
+
         else:
-            logging.warn('Could not fetch avatar.')
+            picture_url = self._content_handler.get_talking_entity_picture_url()
+    
+            if picture_url != None:
+                embed.set_thumbnail(url = picture_url)
+                logging.debug('Avatar URL is: ' + str(picture_url))
+            else:
+                logging.debug('Could not fetch avatar.')
 
         return embed

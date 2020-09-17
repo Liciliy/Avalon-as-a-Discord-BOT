@@ -36,7 +36,7 @@ class TalkPrepSubPhase(AbsTalkSubPhase):
         
         self._prep_time = prep_time
 
-    def react_on_other_sub_phase_end(self):
+    def react_on_other_sub_phase_action(self, content : dict):
         """Check type of other sub phase handled action.
         If the action end requires any reactions from this phase - the response
         actions are executed.
@@ -46,7 +46,7 @@ class TalkPrepSubPhase(AbsTalkSubPhase):
         """
         logging.critical('Unimplemented method usage!')
         raise NotImplementedMethodUsage(\
-            'Method name: react_on_other_sub_phase_end')
+            'Method name: react_on_other_sub_phase_action')
 
     def get_next_sub_phase(self):
 

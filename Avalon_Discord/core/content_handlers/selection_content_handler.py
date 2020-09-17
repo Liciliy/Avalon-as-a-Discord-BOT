@@ -148,8 +148,11 @@ class SelectionContentHandler(AbsContentHandler):
 
     def notify_game_about_selection(self):
         # TODO Notify game here
-        self._game.selection_happen(self._selection.selection_list)
-        print('Here game is notified about selection.')
+        #self._game.selection_happen(self._selection.selection_list)
+        #print('Here game is notified about selection.')
+        self._coordinating_sub_phase.\
+            react_or_content_handler_action(
+                {self._end_type_k_word : self._selection.selection_list})
         
     def stop_selection(self):
         # TODO think about checking if the selection actually happen.

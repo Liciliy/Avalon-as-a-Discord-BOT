@@ -6,7 +6,7 @@ from .abstract_talk_sub_phase import \
     TalkSubPhaseHandledActions, \
     ExecutionEndType
 
-from .abstract_sub_phase import ResDictKWords
+from .abstract_sub_phase import ResDictKWords, InterPhaseCrucialActions
 
 from ..content_handlers.timer_content_handler import TimerType
 
@@ -45,7 +45,7 @@ class AllDiscussionTalkSubPhase(AbsTalkSubPhase):
         self._talk_time = AllDiscussionTalkSubPhase.ONE_MINUTE_S \
                         * int(num_of_players_on_mission)
 
-    def react_on_other_sub_phase_end(self):
+    def react_on_other_sub_phase_action(self, content : dict):
         """Check type of other sub phase handled action.
         If the action end requires any reactions from this phase - the response
         actions are executed.
@@ -55,7 +55,7 @@ class AllDiscussionTalkSubPhase(AbsTalkSubPhase):
         """
         logging.critical('Unimplemented method usage!')
         raise NotImplementedMethodUsage(\
-            'Method name: react_on_other_sub_phase_end')
+            'Method name: react_on_other_sub_phase_action')
 
     def get_next_sub_phase(self):
         from .talk_sub_phase_no_talks import NoTalkTalkSubPhase
@@ -69,6 +69,12 @@ class AllDiscussionTalkSubPhase(AbsTalkSubPhase):
     def start(self):
         logging.info('Starting phase.')
         self._sub_phase_ended = False
+
+        self._phase_handler.message_other_sub_phase(
+            self._sub_phase_type, 
+            {InterPhaseCrucialActions.PLAYERS_SPEACHES_ROUND_ENDED : None}
+        )
+
         self.timer_content_handler.\
                 set_coordinating_sub_phase_and_expected_end(
                     self, 

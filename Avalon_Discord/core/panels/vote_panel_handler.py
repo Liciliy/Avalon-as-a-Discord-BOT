@@ -94,13 +94,17 @@ class VotePanelHandler(AbsGamePanelHandler):
             self.publish(content)
 
     async def on_reaction(self, payload):
-        # TODO dont react on reaction removal.
         str_to_log = 'Got reaction act: ' \
                    + self._get_react_payload_info_as_string(payload)    
         logging.info(str_to_log)
 
         if payload.event_type == const.REACTION_REM:
             return
+        
+        # TODO Ask content handler if its OK to finish vote for this player.
+        # This makes sence at least for party selection - a user might click
+        # one more (leaving party limit behind) player emoji and then 
+        # finalise his selection - this can cause faults.
 
         self.order_remove_all_reactions(self._emoji_message.id)
         await self._content_handler.handle_reaction(payload)

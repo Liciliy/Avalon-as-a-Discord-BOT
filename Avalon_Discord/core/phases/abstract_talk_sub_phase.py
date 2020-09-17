@@ -1,17 +1,17 @@
 from .abstract_sub_phase import AbsSubPhase, SubPhaseType
 
 class ExecutionEndType:
-    PREP_ENDED      = 11
-    PLAYER_TALK_END = 12
-    DISCUSSION_END  = 13
-    NO_TALK_END     = 14
+    PREP_ENDED      = 111
+    PLAYER_TALK_END = 112
+    DISCUSSION_END  = 113
+    NO_TALK_END     = 114
     # TODO Add merlin Hunt end type
 
 class TalkSubPhaseHandledActions:
-    TALK_PREPARATION_PHASE = 0
-    ONE_PLAYER_TALK        = 1
-    ALL_DISCUSSION_TALK    = 2
-    NO_TALK                = 3
+    TALK_PREPARATION_PHASE = 120
+    ONE_PLAYER_TALK        = 121
+    ALL_DISCUSSION_TALK    = 122
+    NO_TALK                = 123
     # TODO Add Merlin hunt talk phase(s)
 
 
@@ -31,7 +31,7 @@ class AbsTalkSubPhase(AbsSubPhase):
                          SubPhaseType.TALK, 
                          sub_phase_action,
                          game,
-                party_leader)
+                         party_leader)
 
         self._talking_player_id = talking_player_id
         self._sub_phase_ended   = False

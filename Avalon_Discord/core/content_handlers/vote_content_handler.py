@@ -27,7 +27,7 @@ class VoteOptions:
 class VoteContentHandler(AbsContentHandler):
     NO_VOTE     = '❌'
     YES_VOTE    = '✅'
-    EMPTY_VOTE  = '        *******' 
+    EMPTY_VOTE  = '▪️*******' 
     RESULTS_DISPLAY_TIME = 3
     MISSION_FAILURE_EMOJI = '❌'
     MISSION_SUCCESS_EMOJI = '✅'
@@ -480,9 +480,8 @@ class VoteContentHandler(AbsContentHandler):
             self.update_vote_pannels()
 
     def notify_game_vote_is_done(self):
-        # TODO here notify game phase about vote results.
-        print ('!!! VOTE IS DONE!!! Here the game should be notified')
-        pass
+        res_dict = self.get_base_action_end_dict() 
+        self._coordinating_sub_phase.react_or_content_handler_action(res_dict)
 
     # TODO Find a way to make this function be executed immediately. 
     async def handle_reaction(self, reaction_payload):
@@ -509,7 +508,7 @@ class Vote:
     all_voters_chs_ids          = None
     num_of_players_to_select    = None
     voter_ch_id_to_vote_options = None
-    _votes_to_fail               = None
+    _votes_to_fail              = None
     #===========================================
 
 

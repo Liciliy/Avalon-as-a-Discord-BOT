@@ -262,50 +262,49 @@ class AvaGame:
         await self._timer_content_handler.initial_render()
       # =================================================================== #
 
-      
-
-      # TODO test code below. Remove later:
-
-       # === Selection panel ===
+      # === Selection panel ===
         self._selection_content_handler =\
             SelectionContentHandler(
                 self,
                 self.player_id_to_txt_ch_handler_dict.values(),
                 self.player_id_to_txt_ch_handler_dict[self.game_master_id].id)
         await self._selection_content_handler.initial_render() 
+      # =================
 
-        name = self.player_id_to_name_dict[self.players_ids_list[0]]
-
-        self._selection_content_handler.initiate_selection(
-                          SelectionType.PARTY, 
-                          self.players_ids_list[0], 
-                          name)
-       # =================
-
-       # === Vote panel ===
+      # === Vote panel ===
         self._vote_content_handler =\
             VoteContentHandler(
                 self, 
                 self.player_id_to_txt_ch_handler_dict.values(),
                 self.player_id_to_txt_ch_handler_dict[self.game_master_id].id)
         await self._vote_content_handler.initial_render() 
-       # =================
+      # =================
+
+
+      # TODO test code below. Remove later:
+
 
        # === Vote and selection setup panel ===
-        vpids_to_vote_opts = dict()
-        vpids_to_vote_opts[self.players_ids_list[0]] = VoteOptions.ONLY_YES
+        #name = self.player_id_to_name_dict[self.players_ids_list[0]]
+
+        #self._selection_content_handler.initiate_selection(
+        #                  SelectionType.PARTY, 
+        #                  self.players_ids_list[0], 
+        #                  name)
+        #vpids_to_vote_opts = dict()
+        #vpids_to_vote_opts[self.players_ids_list[0]] = VoteOptions.ONLY_YES
 
 
-        party_emojies = list()
-        for _, em in self.player_id_to_emoji_dict.items():
-            party_emojies.append(str(em))
-           
+        #party_emojies = list()
+        #for _, em in self.player_id_to_emoji_dict.items():
+        #    party_emojies.append(str(em))
+        #   
 
-        self._vote_content_handler.initiate_vote(
-                          2, 
-                          vpids_to_vote_opts, 
-                          VoteType.PARTY_FORMING)
-        self._vote_content_handler.start_vote()
+        #self._vote_content_handler.initiate_vote(
+        #                  2, 
+        #                  vpids_to_vote_opts, 
+        #                  VoteType.PARTY_FORMING)
+        #self._vote_content_handler.start_vote()
        # ================= 
 
        # === Temporary table panel ===
@@ -327,7 +326,7 @@ class AvaGame:
             self._numbers_and_roles_handler.get_merlin_hunter_pid,
             self._numbers_and_roles_handler.get_number_of_player_for_mission,
             self._numbers_and_roles_handler.get_number_of_fails_to_fail_mission,
-            self._real_time_info_handler.get_current_mission_number)
+            self._real_time_info_handler)
 
         self._phases_handler.start_phases()
       # =================================================================== #
@@ -509,21 +508,21 @@ class AvaGame:
         return len(self.players_ids_list) 
 
     @property
-    def timer_content_handler(self):
+    def timer_content_handler(self) -> TimerContentHandler:
         return self._timer_content_handler
 
     @property
-    def vote_content_handler(self):
+    def vote_content_handler(self) -> VoteContentHandler:
         return self._vote_content_handler 
 
     @property
-    def selection_content_handler(self):
+    def selection_content_handler(self) -> SelectionContentHandler:
         return self._selection_content_handler
 
     @property
-    def secret_info_content_handler(self):
+    def secret_info_content_handler(self) -> SecretInfoContentHandler:
         return self._secret_info_content_handler
 
     @property
-    def table_content_handler(self):
+    def table_content_handler(self) -> TableContentHandler:
         return self._table_content_handler
