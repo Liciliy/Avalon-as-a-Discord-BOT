@@ -53,14 +53,17 @@ class SoundManager:
 
     @staticmethod
     def pause_sounds():
+        logging.info('Requesting sound pause.')
         SoundManager._voice_channel_handler.pause_sounds()
 
     @staticmethod
     def resume_sounds():
+        logging.info('Requesting sound resume.')
         SoundManager._voice_channel_handler.resume_sounds()
 
     @staticmethod
     def stop_sounds():
+        logging.info('Requesting sound stop.')
         SoundManager._voice_channel_handler.stop_sounds()
 
 

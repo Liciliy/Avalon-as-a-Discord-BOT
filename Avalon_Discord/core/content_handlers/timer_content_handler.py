@@ -13,7 +13,7 @@ from ..sound_manager import SoundManager
 
 class TimerType:
     TALKING_TIMER          = 0
-    TALK_PREPARATION_TIMER  = 1
+    TALK_PREPARATION_TIMER = 1
     BALAGAN_TIMER          = 2
     MERLIN_HUNT_TALK_TIMER = 3
 
@@ -166,7 +166,6 @@ class TimerContentHandler(AbsContentHandler):
                                      actual_timer_segments,
                                      initial_update,
                                      time_left):
-        
         text      = None
         reactions = None
 
@@ -326,9 +325,16 @@ class TimerContentHandler(AbsContentHandler):
                      '. Talker channel ID '   + str(talker_with_timer_ch_id)+
                      '. Time: '               + str(time_to_count))
 
+        if self._timer != None:
+            logging.info('Cleaning up previous timer instance.')
+            self._timer.outdate_timer()
+            del self._timer
+
+        SoundManager.stop_sounds()
+
         self._time_runs_out = False  
         
-        self._stoped_by_a_user = False           
+        self._stoped_by_a_user = False 
 
         self._timer                   = Timer(time_to_count, self)
         self._time_to_count           = time_to_count
@@ -339,8 +345,6 @@ class TimerContentHandler(AbsContentHandler):
         self._set_talking_entity_picture_url()
 
         self.update_panels(time_to_count, True)
-
-        
 
         # TODO find a way to make below awaited task to be higg prio
         # TODO think about starting of the timer in a separate thread.
@@ -405,6 +409,7 @@ class Timer:
     _time_to_count         = None
     _is_active             = None
     _is_paused             = None
+    _is_outdated           = None
 
 
     def __init__(self, time, timer_content_handler):
@@ -435,9 +440,13 @@ class Timer:
         logging.info('Timer is stoped.')
 
     def pause(self):
+        logging.info(
+            f'Timer status. Is paused: {str(self._is_paused)}.' +
+            f' Is active: {str(self._is_active)}.')
         if not self._is_paused and self._is_active:        
             self._is_paused  = True
-            self._time_left  = self._end_time - asyncio.get_running_loop().time() 
+            self._time_left  =\
+                 self._end_time - asyncio.get_running_loop().time() 
             self._pause_time = asyncio.get_running_loop().time() 
     
             logging.info('Timer is paused.')
@@ -511,17 +520,25 @@ class Timer:
 
             # If timer is paused it will cycled in the below loop until
             # being resumed by a user.
-            while self._is_paused:
+            while self._is_paused and self._is_active:
                 await asyncio.sleep(Timer.TIMER_SLEEP_TIME_S)
             
             self._handle_timer_iteration_actions()                         
             
             await asyncio.sleep(Timer.TIMER_SLEEP_TIME_S)
             self._curr_segment_lifetime += Timer.TIMER_SLEEP_TIME_S
+
+        if self._is_outdated != None and self._is_outdated == True:
+            logging.info('Timer marked as outdated. Terminating execution...')
+            return
     
         logging.info('Timer loop ended. Notifying timer content handler.') 
         self._timer_content_handler.notify_game_timer_expired()
-            
+
+    def outdate_timer(self):
+        self._is_outdated = True
+        self.stop()
+
     @staticmethod
     def _get_start_time_segments():
         return [Timer.SEGMENT_1ST_EMOJI] * Timer.NUM_OF_SEGMENTS

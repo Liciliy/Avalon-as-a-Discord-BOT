@@ -154,3 +154,6 @@ class GameInfo:
 
     def get_current_mission_number(self):
         return self._current_mission_number
+
+    def reset_number_of_failed_votes_to_zero(self):
+        self._num_of_failed_votes = 0

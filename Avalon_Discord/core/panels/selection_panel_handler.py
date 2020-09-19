@@ -17,7 +17,7 @@ class SelectionPanelHandler(AbsGamePanelHandler):
         else: self._update_and_publish(content)      
         
     async def _create_and_publish(self, content):
-        self._message = await self._channel.send(content = content)
+        self._message = await self._channel.send(content = content.text)
         self._msg_content = content
 
     async def delete(self):

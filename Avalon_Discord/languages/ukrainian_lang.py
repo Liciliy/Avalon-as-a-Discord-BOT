@@ -217,17 +217,17 @@ VOTE_LEADER_SELECT_PLAYERS_TALKS =\
 VOTE_PLAYERS_SELECTED          = '▪️ **Потенційні герої ({sel} з {need}):**'
 
 VOTE_MISSION_HAS_STARTED   = '▪️ **Пригода почалась!**'
-VOTE_MISSION_NON_PARTY     = 'Наші герої вирішують долю пригоди!'
-VOTE_WAITING_4_OTHERS      = 'Чекаємо поки усі визначаться.'
-VOTE_CHOOSE_MISSION_RESULT = 'Оберіть результат пригоди:'
-VOTE_FAILED_MISSION       = '▪️ **Пригода завершилась невдачею... Результати:**'
+VOTE_MISSION_NON_PARTY     = '▪️ **Наші герої вирішують долю пригоди!**'
+VOTE_WAITING_4_OTHERS      = '▪️ **Чекаємо поки усі визначаться.**'
+VOTE_CHOOSE_MISSION_RESULT = '▪️ **Оберіть результат пригоди:**'
+VOTE_FAILED_MISSION        = '▪️ **Пригода завершилась невдачею... Результати:**'
 VOTE_SUCCESS_MISSION       = '▪️ **Пригода була успішною! Результати:**'
 
 VOTE_RED_SEEK_MERLIN        = '▪️ **Червоні шукають Мерліна.**'
 VOTE_MERLIN_SELECTED        = '▪️ **Цей гравець позначений як Мерлін:**'
 VOTE_HUNTER_SELECTS_MERLIN  = '▪️ **Ви позначаєте Мерліна.**'
 VOTE_HUNTER_MERLIN_SELECTED = '▪️ **Гравець позначений як Мерлін. Стріляти?**'
-VOTE_NO_ONE_SELECTED_AS_MERLIN = 'Мерліна не позначено.'
+VOTE_NO_ONE_SELECTED_AS_MERLIN = '▪️ **Мерліна не позначено.**'
 VOTE_RED_SHOT_A_PLAYER      = '▪️ **Червоні вистрілили в цього гравця:**'
 #=============================================================================#
 

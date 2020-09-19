@@ -343,6 +343,12 @@ class AvaGame:
     def selection_happen(self, content):
         self._vote_content_handler.update_vote_pannels(content)
 
+    def update_game_table(self):
+        self.table_content_handler.update_table_pannels(
+            self._real_time_info_handler.get_missions_results_list(),
+            self._real_time_info_handler.get_num_of_failed_votes()
+        )
+
     async def display_error_msg(self, msg, error_to_display):
         player_chanel = self.player_id_to_txt_ch_handler_dict[msg.author.id]
         await player_chanel.display_error_msg(error_to_display)

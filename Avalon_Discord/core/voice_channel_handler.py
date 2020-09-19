@@ -79,10 +79,13 @@ class VoiceChannelHandler:
         
         else:
             if vc.is_playing() or vc.is_paused():
+                logging.info('Stopping previous sound.')
                 vc.stop()
+                
 
             sound_source = discord.FFmpegPCMAudio(file_path)
 
+            logging.info('Starting sound.')
             vc.play(sound_source)
 
     def pause_sounds(self):
@@ -94,6 +97,9 @@ class VoiceChannelHandler:
         
         elif vc.is_playing():
             vc.pause()
+            logging.info('Pausing sound.')
+        else:
+            logging.info('Sound is already paused/stopped.')
 
     def resume_sounds(self):
         vc = self._voice_client
@@ -103,7 +109,10 @@ class VoiceChannelHandler:
              'A request to resume sound was recieved but Voice Client is None.')
         
         elif vc.is_paused():
+            logging.info('Resuming sound.')
             vc.resume()
+        else:
+            logging.info('Sound is not paused.')
 
     def stop_sounds(self):
         vc = self._voice_client
@@ -113,4 +122,7 @@ class VoiceChannelHandler:
               'A request to stop sound was recieved but Voice Client is None.')
         
         elif vc.is_playing() or vc.is_paused():
+            logging.info('Stopping sound.')
             vc.stop()
+        else:
+            logging.info('Nothing to stop.')

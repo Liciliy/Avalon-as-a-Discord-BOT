@@ -14,7 +14,7 @@ from ..common import NotImplementedMethodUsage
 
 class TalkPrepSubPhase(AbsTalkSubPhase):
 
-    DEF_PREPARATION_TIME_S = 3
+    DEF_PREPARATION_TIME_S = 5
     PREP_END_TYPE = ExecutionEndType.PREP_ENDED
 
     PREP_END_K_WORD = ResDictKWords.ENDED_ACTION_TYPE

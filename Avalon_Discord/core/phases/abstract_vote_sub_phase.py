@@ -25,7 +25,7 @@ class AbsVoteSubPhase(AbsSubPhase):
                  party_leader):
 
         super().__init__(parent_phase,                          
-                         SubPhaseType.TALK, 
+                         SubPhaseType.VOTE, 
                          sub_phase_action,
                          game,
                          party_leader)
@@ -39,4 +39,3 @@ class AbsVoteSubPhase(AbsSubPhase):
     @property
     def selection_content_handler(self):
         return self._game.selection_content_handler
-

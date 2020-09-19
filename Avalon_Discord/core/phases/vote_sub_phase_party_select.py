@@ -43,14 +43,31 @@ class PartySelectVoteSubPhase(AbsVoteSubPhase):
             self.vote_content_handler.start_vote()
 
     def get_next_sub_phase(self):
-        #from .talk_sub_phase_no_talks import NoTalkTalkSubPhase
-#
-        #logging.info(f'Retruning next phase - {NoTalkTalkSubPhase.__name__}.')
-        #return NoTalkTalkSubPhase(self._phase_handler, 
-        #                          self._game,
-        #                          self._party_leader,
-        #                          self._party_leader)
-        pass
+        logging.info('Going to next Vote Sub Phase.')
+        result = None
+        
+        if self._phase_handler.game_info.maximum_failed_votes_thr_reached():
+            
+            from .vote_sub_phase_mission_result import MissionResultVoteSubPhase
+            self._phase_handler.game_info.reset_number_of_failed_votes_to_zero()
+            result = MissionResultVoteSubPhase(
+                                 self._phase_handler, 
+                                 self._game, 
+                                 self.get_next_party_leader(),
+                                 self._selected_party_emojies)
+        else:
+
+            from .vote_sub_phase_party_approval import PartyApproveVoteSubPhase
+
+            logging.info(
+                f'Retruning next phase - {PartyApproveVoteSubPhase.__name__}.')
+            result =  PartyApproveVoteSubPhase(
+                self._phase_handler, 
+                self._game,
+                self._party_leader,
+                self._selected_party_emojies)
+
+        return result
 
     def start(self):
         logging.info('Starting phase.')
@@ -93,7 +110,9 @@ class PartySelectVoteSubPhase(AbsVoteSubPhase):
         logging.info('Received selection: '
                      + str (self._selected_party_emojies))
         self._sub_phase_ended = True
-        #self._notify_phase_handler_about_this_phase_end()
+
+        self.selection_content_handler.stop_selection()
+        self._notify_phase_handler_about_this_phase_end()
 
     def react_or_content_handler_action(self, content_dict): 
 

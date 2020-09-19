@@ -1,3 +1,4 @@
+import logging
 from .abstract_sub_phase import AbsSubPhase, SubPhaseType
 
 class ExecutionEndType:
@@ -19,6 +20,7 @@ class AbsTalkSubPhase(AbsSubPhase):
 
     _talking_player_id = None
     _sub_phase_ended   = None
+    _next_talk_phase   = None
 
     def __init__(self, 
                  parent_phase,  
@@ -46,3 +48,19 @@ class AbsTalkSubPhase(AbsSubPhase):
     @property
     def timer_content_handler(self):
         return self._game.timer_content_handler
+
+    def initiate_new_talk_round(self):  
+        from .talk_sub_phase_preparation import TalkPrepSubPhase
+
+        next_leader           = self.get_next_party_leader()
+        round_starting_talker = self.get_round_starting_talker(next_leader)
+        self._next_talk_phase = \
+                TalkPrepSubPhase(self._phase_handler,
+                                 self._game,
+                                 round_starting_talker,
+                                 next_leader)
+
+        logging.info('Next round first talk sub phase prepared and is written'
+                      + ' into  variable.')
+
+        self._stop()

@@ -133,7 +133,7 @@ class VoteContentHandler(AbsContentHandler):
                     need = str(self._vote.num_of_players_to_select))
         
         party_emoji_str = self._vote.party_str
-        if party_emoji_str == '':
+        if party_emoji_str == '' or party_emoji_str == None:            
             party_emoji_str = VoteContentHandler.EMPTY_VOTE
 
         for p_hdlr in self._panels_handlers:
@@ -343,7 +343,7 @@ class VoteContentHandler(AbsContentHandler):
                         )
 
         header = ''
-        if not self._vote.is_failed_vote:
+        if not self._vote.is_failed_mission_vote:
             header = lang.VOTE_SUCCESS_MISSION
         else:
             header = lang.VOTE_FAILED_MISSION
@@ -480,8 +480,21 @@ class VoteContentHandler(AbsContentHandler):
             self.update_vote_pannels()
 
     def notify_game_vote_is_done(self):
-        res_dict = self.get_base_action_end_dict() 
-        self._coordinating_sub_phase.react_or_content_handler_action(res_dict)
+        res_dict = dict()
+        if self._vote._vote_type == VoteType.PARTY_APPROVING:
+            res_dict = \
+              {self._end_type_k_word : self._vote.is_successful_party_approval}
+
+        elif self._vote._vote_type == VoteType.MISSION_RESULT:
+            res_dict = \
+              {self._end_type_k_word : not(self._vote.is_failed_mission_vote)}        
+
+        else:
+            res_dict = self.get_base_action_end_dict() 
+
+        self._coordinating_sub_phase.\
+            react_or_content_handler_action(res_dict)
+
 
     # TODO Find a way to make this function be executed immediately. 
     async def handle_reaction(self, reaction_payload):
@@ -577,10 +590,20 @@ class Vote:
         return self._vote_type
     
     @property
-    def is_failed_vote(self):
+    def is_failed_mission_vote(self):
         """Should be used only at mission result vote.
 
         Returns:
             Bool: True if mission was failed. False if it was successful.
         """
         return len(self.no_voters_chs_ids) >= self._votes_to_fail
+
+    
+    @property
+    def is_successful_party_approval(self):
+        """Should be used only at mission approval vote.
+
+        Returns:
+            Bool: True if vote was successful. False if it was failed.
+        """
+        return len(self.no_voters_chs_ids) < len(self.yes_voters_chs_ids) 

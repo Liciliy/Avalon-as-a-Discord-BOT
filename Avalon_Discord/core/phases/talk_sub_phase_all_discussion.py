@@ -46,25 +46,43 @@ class AllDiscussionTalkSubPhase(AbsTalkSubPhase):
                         * int(num_of_players_on_mission)
 
     def react_on_other_sub_phase_action(self, content : dict):
-        """Check type of other sub phase handled action.
-        If the action end requires any reactions from this phase - the response
-        actions are executed.
 
-        Raises:
-            NotImplementedMethodUsage: [description]
-        """
-        logging.critical('Unimplemented method usage!')
-        raise NotImplementedMethodUsage(\
-            'Method name: react_on_other_sub_phase_action')
+        if    InterPhaseCrucialActions.VOTE_SUB_PHASES_CHAIN_ENDED \
+                in \
+              content:
+            logging.info('Going to initiate next talking round.')
+            self.initiate_new_talk_round()
 
+        elif  InterPhaseCrucialActions.MERLIN_HUNT_IS_STARTED \
+                in \
+              content:
+            
+            logging.info('Going to initiate Merlin Hunt talking round.')
+            # TODO add merlin hunt actions here
+            pass
+
+        logging.info('Leaving function: react_on_other_sub_phase_action.')
+            
     def get_next_sub_phase(self):
         from .talk_sub_phase_no_talks import NoTalkTalkSubPhase
 
-        logging.info(f'Retruning next phase - {NoTalkTalkSubPhase.__name__}.')
-        return NoTalkTalkSubPhase(self._phase_handler, 
-                                  self._game,
-                                  self._party_leader,
-                                  self._party_leader)
+        result = None
+
+        if self._next_talk_phase != None:
+            result = self._next_talk_phase
+            self._next_talk_phase = None
+            logging.info(
+                'Retuning pre-prepared phase.')
+        else:
+     
+            logging.info(
+                f'Retuning next phase - {NoTalkTalkSubPhase.__name__}.')
+            result = NoTalkTalkSubPhase(self._phase_handler, 
+                                        self._game,
+                                        self._party_leader,
+                                        self._party_leader)
+
+        return result
 
     def start(self):
         logging.info('Starting phase.')

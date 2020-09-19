@@ -17,7 +17,7 @@ root_logger.setLevel(20)
 
 stream_handler = logging.StreamHandler()
 formatter = logging.Formatter(
-    '%(levelname)s:[%(filename)s:%(lineno)d][%(threadName)s] - %(message)s')
+    '%(levelname)s:[%(filename)s:%(lineno)d][%(threadName)s][%(asctime)s] - %(message)s')
 stream_handler.setFormatter(formatter)
 
 root_logger.addHandler(stream_handler)

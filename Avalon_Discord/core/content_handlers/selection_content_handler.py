@@ -29,7 +29,9 @@ class SelectionContentHandler(AbsContentHandler):
             self._players_emojies.append(emoji_as_str)
 
     async def initial_render(self):
-        content = PanelContent(lang.SEL_EMPTY_SELECTION)
+        content = PanelContent(
+            text = lang.SEL_EMPTY_SELECTION, 
+            reactions = None)
 
         for panel_hdlr in self._panels_handlers:
             panel_hdlr.set_content_handler(self)            

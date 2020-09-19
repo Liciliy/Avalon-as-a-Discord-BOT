@@ -133,7 +133,7 @@ class NumbersAndRolesHandler:
         result = False
 
         for role in self._pids_to_roles.values():
-            if role == Merlin:
+            if type(role) == Merlin:
                 result = True
                 break
 
@@ -156,13 +156,13 @@ class NumbersAndRolesHandler:
 
         # This loop checks if there is assasin and morgana. 
         # Also gets other red players IDs
-        for pid, role in self._pids_to_roles.values():
+        for pid, role in self._pids_to_roles.items():
             
-            if   role == Assassin:
+            if   type(role) == Assassin:
                 assasin_pid = pid
                 break
 
-            elif role == Morgana:
+            elif type(role) == Morgana:
                 morgana_pid = pid 
 
             elif role.team == Team.RED:

@@ -4,6 +4,8 @@ from ..common import NotImplementedMethodUsage
 
 from ..game import AvaGame
 
+from.phase_handler import PhaseHandler
+
 class SubPhaseType:
     TALK = 0
     VOTE = 1
@@ -17,6 +19,8 @@ class VoteSubPhaseHandledActions:
 class ResDictKWords:
     ENDED_ACTION_TYPE = 'ended_action_type'
     SELECTION_CHANGED = 'selection_changed'
+    PARTY_APPR_RES    = 'party_appr_vote_results'
+    MISSION_RESULT    = 'mission_results'
 
 class InterPhaseCrucialActions:
     PLAYERS_SPEACHES_ROUND_ENDED = 301
@@ -27,13 +31,13 @@ class AbsSubPhase:
     
 
     _sub_phase_type   = None
-    _phase_handler    = None
+    _phase_handler : PhaseHandler    = None
     _sub_phase_action = None
     _game_instance    = None
     _party_leader     = None
 
     def __init__(self, 
-                phase_handler, 
+                phase_handler  : PhaseHandler, 
                 this_sub_phase_type, 
                 sub_phase_action,
                 game: AvaGame,
@@ -136,4 +140,30 @@ class AbsSubPhase:
     def _game(self) -> AvaGame:
         return self._game_instance
 
-            
+    def get_next_party_leader(self):
+        LIST_START_POS = 0
+        pids = self._game.players_ids_list
+
+
+        curr_leader_pos = pids.index(self._party_leader)
+
+        next_leader_pos = curr_leader_pos + 1
+
+        if next_leader_pos == len(pids):
+            next_leader_pos = LIST_START_POS
+
+        return pids[next_leader_pos]
+
+    def get_round_starting_talker(self, party_leader_id):   
+        LIST_START_POS = 0
+        pids = self._game.players_ids_list
+
+        curr_leader_pos = pids.index(party_leader_id)
+
+        starting_talker_pos = curr_leader_pos + 1
+
+        if starting_talker_pos == len(pids):
+            starting_talker_pos = LIST_START_POS
+
+        return pids[starting_talker_pos]
+        
