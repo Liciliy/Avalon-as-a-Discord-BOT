@@ -42,7 +42,8 @@ class VotePanelHandler(AbsGamePanelHandler):
         if    content[MessageType.TEXT_MSG] != None \
           and content[MessageType.TEXT_MSG] != prev_header:
             self.order_edit_task(content[MessageType.TEXT_MSG], 
-                                 self._header_message.id)
+                                 self._header_message.id,
+                                 edit_in_queue = True)
         
         else:
             content[MessageType.TEXT_MSG] = prev_header
@@ -50,7 +51,9 @@ class VotePanelHandler(AbsGamePanelHandler):
         emoji_content = content[MessageType.EMOJI_MSG]
         if emoji_content != None:
             if emoji_content.text != None and emoji_content.text != prev_emoji:
-                self.order_edit_task(emoji_content.text, self._emoji_message.id)
+                self.order_edit_task(emoji_content.text, 
+                                     self._emoji_message.id,
+                                     edit_in_queue = True)
             else:
                 content[MessageType.EMOJI_MSG].text = prev_emoji
             

@@ -103,7 +103,21 @@ class AbsGamePanelHandler:
     def order_edit_task(self, 
                         new_content, 
                         message_id,
-                        content_type = None):
+                        content_type = None,
+                        edit_in_queue = False):
+        """Orders an execution of a message edit task from the game.
+
+        Args:
+            new_content ([type]): new message content.
+            message_id (integer): [description]
+            content_type (ContentType, optional): Either ember, text or file. 
+                                                  Defaults to None.
+            edit_in_queue (bool, optional): If set to true - then the task will
+                                            be executed in a queue. The queue 
+                                            consists of edit requests for a 
+                                            specific channel and message.
+                                            Defaults to False.
+        """
 
         type_to_use = None
         if content_type == None:
@@ -111,11 +125,12 @@ class AbsGamePanelHandler:
         else:
             type_to_use = content_type
 
-        edit_task = Task(type = MsgActType.EDIT,
-                         content = new_content,
-                         content_type = type_to_use,
-                         channel_id = self._channel.id,
-                         message_id = message_id)
+        edit_task = Task(type          = MsgActType.EDIT,
+                         content       = new_content,
+                         content_type  = type_to_use,
+                         channel_id    = self._channel.id,
+                         message_id    = message_id,
+                         edit_in_queue = edit_in_queue)
 
         self._game.order_task_to_msg_dispatcher(edit_task)
 

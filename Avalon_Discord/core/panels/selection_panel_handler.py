@@ -27,7 +27,9 @@ class SelectionPanelHandler(AbsGamePanelHandler):
 
     def update_and_publish(self, content): 
         if content.text != None:
-            self.order_edit_task(content.text, self._message.id)
+            self.order_edit_task(content.text, 
+                                 self._message.id, 
+                                 edit_in_queue = True)
         if content.reactions != None:
             for reaction in content.reactions:
                 self.order_add_reaction(reaction, self._message.id)

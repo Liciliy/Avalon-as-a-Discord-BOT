@@ -280,12 +280,7 @@ class TimerContentHandler(AbsContentHandler):
     def notify_game_timer_expired(self):
         logging.debug('Timer notified about its expiration.')
 
-        self._talking_entity_picture_url = None
-
-        if not self._stoped_by_a_user \
-              and\
-           self._timer_type != TimerType.TALK_PREPARATION_TIMER:
-            SoundManager.play_clock_alarm_2_s()
+        self._talking_entity_picture_url = None        
 
         if self._timer_type == TimerType.TALKING_TIMER:
 
@@ -331,6 +326,13 @@ class TimerContentHandler(AbsContentHandler):
             del self._timer
 
         SoundManager.stop_sounds()
+
+        if timer_type == TimerType.BALAGAN_TIMER \
+              or\
+           timer_type == TimerType.TALK_PREPARATION_TIMER\
+              or\
+           timer_type == TimerType.MERLIN_HUNT_TALK_TIMER:
+            SoundManager.play_clock_alarm_2_s()
 
         self._time_runs_out = False  
         

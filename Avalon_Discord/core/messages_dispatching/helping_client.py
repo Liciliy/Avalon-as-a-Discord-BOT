@@ -7,17 +7,29 @@ import traceback
 
 from .task import MsgActType, ContentType
 
+from .edit_task import EditMsgTask
+
 class HelpingClient(discord.Client):   
 
     _task_queue   = None
     _bg_task      = None
     _client_ready = None
+    _helper_id    = None
+    _edit_tasks_queue = None
 
-    def __init__(self, queue_with_taks, loop_to_run, *args, **kwargs):
+    def __init__(self, 
+                 tasks_queue, 
+                 client_id, 
+                 loop_to_run, 
+                 edit_tasks_queue,
+                 *args, 
+                 **kwargs):
         
         super().__init__(loop = loop_to_run, *args, **kwargs)
 
-        self._task_queue = queue_with_taks
+        self._task_queue = tasks_queue
+        self._helper_id = client_id
+        self._edit_tasks_queue = edit_tasks_queue
 
         self._bg_task =\
             loop_to_run.create_task(self.check_queue_and_execute_tasks())
@@ -136,15 +148,26 @@ class HelpingClient(discord.Client):
                                     fields['content'] = str(text)
                                 if embed != None: 
                                     fields['embed'] = embed.to_dict()
+
+                                if task.edit_in_queue == False:
+
+                                    await self.http.edit_message(
+                                        task.channel_id, 
+                                        task.message_id, 
+                                        **fields)                                    
+
+                                elif task.edit_in_queue == True:  
+
+                                    edit_task = EditMsgTask(task.channel_id, 
+                                                            task.message_id, 
+                                                            fields)
     
-                                await self.http.edit_message(task.channel_id, 
-                                                             task.message_id, 
-                                                             **fields)
+                                    self._edit_tasks_queue.add_task(edit_task)                                  
                     
                         else:
                             # TODO think about processing an error somehow here.
                             logging.error('Wrong task type received: ' 
-                                           + str(task.type))
+                                           + str(task.type))                        
 
                     except Exception as ex:
                         logging.error('Exception as string: ' 
@@ -158,7 +181,27 @@ class HelpingClient(discord.Client):
                         
                         # TODO here thing if it is needed to re-raise 
                         # the exception or react on it somehow.
-            
+
+            try:
+                self._edit_tasks_queue.process_edit_task_queue(
+                        self._helper_id,
+                        asyncio.get_running_loop(),
+                        self
+                    )
+
+            except Exception as ex:
+                    logging.error('Exception as string: ' 
+                                  + str(ex))
+                    logging.error('Sys exec info: '       
+                                  + str(sys.exc_info()[0]))
+                    logging.error('Traceback: '           
+                                  + str(traceback.format_exc()))
+
+                    logging.error('Executed task:\n' + str(task))           
+                    
+                    # TODO here thing if it is needed to re-raise 
+                    # the exception or react on it somehow.
+
             await asyncio.sleep(0.01)
 
     # TODO Consider to add stop functionality?

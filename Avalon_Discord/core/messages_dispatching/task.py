@@ -34,27 +34,30 @@ class MsgActType:
 
 
 class Task:
-    type         = None
-    content      = None
-    content_type = None
-    message_id   = None
-    channel_id   = None
-    member_id    = None
+    type          = None
+    content       = None
+    content_type  = None
+    message_id    = None
+    channel_id    = None
+    member_id     = None
+    edit_in_queue = None
 
     def __init__(self, 
                 type, 
-                content      = None, 
-                content_type = None,
-                channel_id   = None,
-                message_id   = None,
-                member_id    = None):
-
-        self.type         = type
-        self.content      = content
-        self.content_type = content_type
-        self.message_id   = message_id
-        self.channel_id   = channel_id
-        self.member_id    = member_id
+                content       = None, 
+                content_type  = None,
+                channel_id    = None,
+                message_id    = None,
+                member_id     = None,
+                edit_in_queue = False):
+ 
+        self.type          = type
+        self.content       = content
+        self.content_type  = content_type
+        self.message_id    = message_id
+        self.channel_id    = channel_id
+        self.member_id     = member_id
+        self.edit_in_queue = edit_in_queue
 
     def __str__(self):
         result = 'Task as a string:'
@@ -65,5 +68,6 @@ class Task:
         result += ('\nTask message_id is: '   + str(self.message_id) )
         result += ('\nTask channel_id is: '   + str(self.channel_id) )
         result += ('\nTask member_id is: '    + str(self.member_id) )
+        result += ('\nTask in_queue is: '     + str(self.edit_in_queue) )
 
         return result

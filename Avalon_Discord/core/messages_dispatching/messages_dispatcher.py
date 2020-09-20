@@ -6,6 +6,8 @@ from .task import Task
 from .helper_client_executor import HelperClientExecutor
 from.task_queue import TaskQueue
 
+from .edit_tasks_queue import EditTasksQueue
+
 MAX_NUMBER_OF_HELPING_CLIENTS = 3
 
 HELPING_THREAD_NAME_TEMPLATE = 'HelperThread-{id}'
@@ -14,7 +16,7 @@ class MessagesDispatcher:
     _tasks_queues      = None
     _clients_executors = None
     _clients_token     = None
-
+    _edit_tasks_queue  = None
 
     def __init__(self, clients_token):
         self._clients_token = clients_token
@@ -22,13 +24,17 @@ class MessagesDispatcher:
         self._clients_executors = list()
         self._tasks_queues      = deque()
 
+        self._edit_tasks_queue = EditTasksQueue()
+
         helper_thread_id = 0
 
         for _ in range (0, MAX_NUMBER_OF_HELPING_CLIENTS):
             new_queue           = TaskQueue()
             new_helper_executor = HelperClientExecutor(
                 new_queue, 
-                clients_token)
+                clients_token,
+                helper_thread_id, 
+                self._edit_tasks_queue)
 
             self._clients_executors.append(new_helper_executor)
 

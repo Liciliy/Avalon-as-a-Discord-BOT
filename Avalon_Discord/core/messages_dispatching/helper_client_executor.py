@@ -12,12 +12,16 @@ class HelperClientExecutor:
     _loop   = None
     _client = None
     _client_token = None
+    _executor_id  = None
 
-    def __init__(self, tasks_queue, client_token):
+    def __init__(self, tasks_queue, client_token, executor_id, edit_tasks_queue):
         self._client_token = client_token
         self._loop         = asyncio.new_event_loop()
+        self._executor_id  = executor_id
         self._client       = HelpingClient(tasks_queue, 
-                                           loop_to_run = self._loop)
+                                           executor_id,
+                                           loop_to_run = self._loop,
+                                           edit_tasks_queue = edit_tasks_queue)
           
     @property
     def loop(self):
