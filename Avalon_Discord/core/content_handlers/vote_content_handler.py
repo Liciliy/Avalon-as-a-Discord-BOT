@@ -28,7 +28,7 @@ class VoteContentHandler(AbsContentHandler):
     NO_VOTE     = '❌'
     YES_VOTE    = '✅'
     EMPTY_VOTE  = '▪️*******' 
-    RESULTS_DISPLAY_TIME = 3
+    RESULTS_DISPLAY_TIME = 7
     MISSION_FAILURE_EMOJI = '❌'
     MISSION_SUCCESS_EMOJI = '✅'
 
