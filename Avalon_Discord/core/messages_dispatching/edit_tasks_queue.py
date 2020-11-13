@@ -27,7 +27,7 @@ class EditTasksQueue:
         task_ch_id  = edit_task.channel_id
         task_msg_id = edit_task.message_id 
 
-        logging.info(f'Adding task to edit tasks queud for CH ID {task_ch_id} '
+        logging.debug(f'Adding task to edit tasks queud for CH ID {task_ch_id} '
                      + f'and MSG ID {task_msg_id}')
 
         if not task_ch_id in self._ch_id_to_task_data:
@@ -53,9 +53,14 @@ class EditTasksQueue:
                                 loop      : AbstractEventLoop,
                                 ds_client : HelpingClient):
         
-        FIRST_TASK_POS = 0
+        FIRST_TASK_POS  = 0
+        NEWEST_TASK_POS = -1
+
+        new_ch_id_to_task_data = dict()
 
         for ch_id, msg_ids_to_task_data in self._ch_id_to_task_data.items():
+
+            new_msg_ids_to_task_data_dict = dict()
 
             for msg_id, tasks_dicts_list in  msg_ids_to_task_data.items():
             
@@ -64,21 +69,28 @@ class EditTasksQueue:
     
                 first_task_dict = tasks_dicts_list[FIRST_TASK_POS]
     
-                first_task : EditMsgTask = \
-                    first_task_dict[EditTasksQueue.OREDERED_TASK]
-    
                 handler_id = first_task_dict[EditTasksQueue.HANDLER_ID]
                
                 if handler_id == None:
                     logging.info(
                         f'Starting a new task to CH ID {ch_id} '
                         + f'and MSG ID {msg_id}')
+
+                    newest_task_dict = tasks_dicts_list[NEWEST_TASK_POS]
+
+                    newest_task : EditMsgTask = \
+                        newest_task_dict[EditTasksQueue.OREDERED_TASK]                
                     
-                    self._start_task(first_task_dict, 
+                    self._start_task(newest_task_dict, 
                                      this_handler_id, 
                                      loop, 
                                      ds_client, 
-                                     first_task)
+                                     newest_task)  
+
+                    new_msg_ids_to_task_data_dict[msg_id] = [newest_task_dict] 
+
+                    logging.info(
+                        f'Skipped {str(len(tasks_dicts_list) -1 )} tasks.')             
     
                 elif handler_id == this_handler_id\
                        and \
@@ -93,16 +105,29 @@ class EditTasksQueue:
                         logging.info(
                             f'Starting next task for CH ID {ch_id} '+
                             f'and MSG ID {msg_id}')
-                        next_task_dict = tasks_dicts_list[FIRST_TASK_POS]
+                        next_task_dict = tasks_dicts_list[NEWEST_TASK_POS]
     
                         next_task : EditMsgTask = \
                                   next_task_dict[EditTasksQueue.OREDERED_TASK]
-    
+
                         self._start_task(next_task_dict, 
                                          this_handler_id, 
                                          loop, 
                                          ds_client, 
                                          next_task)
+                    
+                        new_msg_ids_to_task_data_dict[msg_id] = \
+                             [next_task_dict]
+
+                        logging.info(
+                            f'Skipped {str(len(tasks_dicts_list) -1 )} tasks.')
+                
+                else:
+                    new_msg_ids_to_task_data_dict[msg_id] = tasks_dicts_list
+                    
+            new_ch_id_to_task_data[ch_id] = new_msg_ids_to_task_data_dict
+
+        self._ch_id_to_task_data = new_ch_id_to_task_data                            
 
     def _start_task(self, 
                     task_dict, 

@@ -59,6 +59,10 @@ class MissionResultVoteSubPhase(AbsVoteSubPhase):
             logging.info('Red team won')
         elif self._phase_handler.game_info.start_merlin_hunt_queston():
             logging.info('Starting merlin hunt')
+            self._phase_handler.message_other_sub_phase(                  
+                  self._sub_phase_type, 
+                  {InterPhaseCrucialActions.MERLIN_HUNT_IS_STARTED : None}
+            )
         else:
             logging.info('Notifying talk sub phase about another round start.')
             self._phase_handler.message_other_sub_phase(                  

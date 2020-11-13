@@ -79,6 +79,22 @@ async def on_message(message):
     if message.content.startswith('crv'):
         vote_pan = VotePanelHandler(None, message.channel)
 
+    if message.content.startswith('not_akajabi_test'):
+        user = client.get_user(743480034383102013)
+        await user.send('Hello') 
+
+
+    if message.content.startswith('kajabi_test'):
+        user = client.get_user(757563852043845653)
+
+
+        await user.send('Hello')
+
+        #if user.dm_channel == None:
+        #    await user.create_dm()
+
+        #dmc = user.send
+
     if message.content.startswith('soundon'):
 
         user = message.author
@@ -132,8 +148,6 @@ async def on_message(message):
 
 
             await vc.disconnect()
-
-
 
     if message.content.startswith('vote1'):
         header_embed = form_embed(descr = 'Test vote:',
